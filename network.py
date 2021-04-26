@@ -134,7 +134,7 @@ class Attention(nn.Module):
         self.conv2d_f = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1, 0)
         self.conv2d_g = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1, 0)
         self.conv2d_h = nn.Conv2d(self.input_nc, self.ch, 1, 1, 0)
-        self.gamma = nn.Parameter(torch.Tensor(0.5), requires_grad=True)
+        self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
 
     def forward(self, x, y):
         b, _, w, h = x.shape
