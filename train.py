@@ -93,9 +93,6 @@ def train(args):
     print('===> Training')
     print('Start from epoch: ', pre_epoch)
     for epoch in range(pre_epoch, args.epoch):
-        cur_d1 = []
-        cur_d2 = []
-        cur_g = []
         for iteration, batch in enumerate(train_data_loader, 1):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)
@@ -163,11 +160,6 @@ def train(args):
         # Update Learning rate
         #lr_scheduler_G.step()
         #lr_scheduler_D.step()
-
-        ddg = [sum(cur_d1) / len(train_data_loader), sum(cur_d2) / len(train_data_loader), sum(cur_g) / len(train_data_loader)]
-        ddg_str = " ".join(str(v) for v in ddg)
-        with open(ddg_record, 'a+') as file:
-            file.writelines(ddg_str + "\n")
 
         if args.save_intermediate:
             all_psnr = []
