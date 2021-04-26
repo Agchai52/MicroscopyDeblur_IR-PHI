@@ -1,6 +1,7 @@
 from __future__ import print_function  # help to use print() in python 2.x
 import os
 from math import log10
+import torch.nn.functional as F
 import torch.optim as optim
 import torchvision.transforms as transforms
 from torch.utils.data import DataLoader
@@ -109,7 +110,9 @@ def train(args):
             ###########################
             optimizer_R.zero_grad()
 
-            loss_roi = criterion_L2(roi_B, real_B_)
+            roi_B_ = F.interpolate(roi_B, (roi_B.shape[2]*4, roi_B.shape[3]*4), mode="bilinear")
+
+            loss_roi = criterion_L2(roi_B_, real_B_)
 
             loss_roi.backward()
             optimizer_R.step()
