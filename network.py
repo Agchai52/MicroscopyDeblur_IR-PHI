@@ -102,7 +102,7 @@ class Generator(nn.Module):
         # Residual
         y1 = self.up_net1(y1)      # (b, self.ngf // 8, h, w)
         y2 = self.res_net1(y1)     # (b, self.ngf // 8, h, w)
-        y2 = self.up_net1(y2)      # (b, self.ngf // 16, h, w)
+        y2 = self.up_net2(y2)      # (b, self.ngf // 16, h, w)
         y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
 
         y4 = self.end_net(y3)
