@@ -47,8 +47,8 @@ def find_latest_model(net_path):
         iter_num = max(model_names)
         if net_path[-1] == 'G':
             return os.path.join(net_path, "G_model_epoch_{}.pth".format(iter_num))
-        elif net_path[-2] == '_':
-            return os.path.join(net_path, "D_model_epoch_{}.pth".format(iter_num))
+        elif net_path[-1] == 'R':
+            return os.path.join(net_path, "R_model_epoch_{}.pth".format(iter_num))
 
 
 class LambdaLR():
@@ -65,43 +65,23 @@ class LambdaLR():
 def plot_losses():
     loss_record = "loss_record.txt"
     psnr_record = "psnr_record.txt"
-    ddg_record = "ddg_record.txt"
     ssim_record = "ssim_record.txt"
 
     losses_dg = np.loadtxt(loss_record)
     psnr_ave = np.loadtxt(psnr_record)
     ssim_ave = np.loadtxt(ssim_record)
-    ddg_ave = np.loadtxt(ddg_record)
 
     plt.figure()
-    plt.plot(losses_dg[0:-1:100, 0], 'r-', label='d_loss')
-    plt.xlabel("iteration*100")
-    plt.ylabel("Error")
-    #plt.xlim(xmin=-5, xmax=300)  # xmax=300
-    #plt.ylim(ymin=0, ymax=60)  # ymax=60
-    plt.title("Discriminator Loss")
-    plt.savefig("plot_d_loss.jpg")
-
-    plt.figure()
-    plt.plot(losses_dg[0:-1:100, 1], 'g-', label='g_loss')
-    plt.xlabel("iteration*100")
-    plt.ylabel("Error")
-    #plt.xlim(xmin=-5, xmax=300)
-    #plt.ylim(ymin=0, ymax=60)
-    plt.title("Generator Loss")
-    plt.savefig("plot_g_loss.jpg")
-
-    plt.figure()
-    plt.plot(losses_dg[0:-1:100, 3], 'b--', label='l2_loss')
-    plt.plot(losses_dg[0:-1:100, 4], 'y-', label='cycle_loss')
-    plt.plot(losses_dg[0:-1:100, 2], 'k-', label='gan_loss')
+    plt.plot(losses_dg[0:-1:100, 1], 'r--', label='l2_loss')
+    plt.plot(losses_dg[0:-1:100, 0], 'b-', label='roi_loss')
+    plt.plot(losses_dg[0:-1:100, 2], 'g-', label='recover_loss')
     plt.xlabel("iteration*100")
     plt.ylabel("Error")
     plt.legend()
     # plt.xlim(xmin=-5, xmax=480)
     # plt.ylim(ymin=0, ymax=16)
-    plt.title("L2_Grad_DarkChan Loss")
-    plt.savefig("plot_4g_losses.jpg")
+    plt.title("L2_ROI_Recover Loss")
+    plt.savefig("plot_3_losses.jpg")
     # plt.show()
 
     plt.figure()
@@ -122,18 +102,18 @@ def plot_losses():
     plt.title("Validation SSIM")
     plt.savefig("plot_ssim_loss.jpg")
 
-    plt.figure()
-    plt.plot(ddg_ave[:, 0], 'b-', label='d_fake')
-    plt.plot(ddg_ave[:, 1], 'r-', label='d_real')
-    plt.plot(ddg_ave[:, 2], 'g-', label='gan')
-    plt.xlabel("epochs")
-    plt.ylabel("Average loss")
-    plt.legend()
-    # plt.xlim(xmin=-5, xmax=300)  # xmax=300
-    plt.ylim(ymin=0, ymax=2.)  # ymax=60
-    plt.title("D1_D2_G PSNR")
-    plt.savefig("plot_ddg_loss.jpg")
-#plot_losses()
+    # plt.figure()
+    # plt.plot(ddg_ave[:, 0], 'b-', label='d_fake')
+    # plt.plot(ddg_ave[:, 1], 'r-', label='d_real')
+    # plt.plot(ddg_ave[:, 2], 'g-', label='gan')
+    # plt.xlabel("epochs")
+    # plt.ylabel("Average loss")
+    # plt.legend()
+    # # plt.xlim(xmin=-5, xmax=300)  # xmax=300
+    # plt.ylim(ymin=0, ymax=2.)  # ymax=60
+    # plt.title("D1_D2_G PSNR")
+    # plt.savefig("plot_ddg_loss.jpg")
+# plot_losses()
 
 
 
