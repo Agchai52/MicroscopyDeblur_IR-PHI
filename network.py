@@ -142,7 +142,7 @@ class Attention(nn.Module):
         self.conv2d_f = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
         self.conv2d_g = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
         self.conv2d_h = nn.Conv2d(self.input_nc, self.ch, 1, 1)
-        self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
+        #self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
 
     def forward(self, x, y):
         b, _, w, h = x.shape
@@ -155,8 +155,7 @@ class Attention(nn.Module):
         s = torch.matmul(g, f)                           # (b, h*w, h*w)
         beta = F.softmax(s, dim=-1)                      # (b, h*w, h*w)
         o = torch.matmul(beta, h)                        # (b, h*w, ch)
-        x = self.gamma * o + x
-        return x
+        return o
 
 
 class ResBlock(nn.Module):
