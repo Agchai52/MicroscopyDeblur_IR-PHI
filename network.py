@@ -79,7 +79,7 @@ class Generator(nn.Module):
         self.device = device
         self.loss = nn.MSELoss()
 
-        self.att_net = Attention(self.input_nc, self.ngf)
+        self.att_net = Attention(self.input_nc, self.ngf // 4)
 
         self.res_net1 = ResBlock(self.ngf, self.ngf)
         self.res_net2 = ResBlock(self.ngf, self.ngf)
