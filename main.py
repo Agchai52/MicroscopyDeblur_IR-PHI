@@ -49,7 +49,7 @@ cudnn.benchmark = True
 torch.manual_seed(args.seed)
 
 if args.phase == 'train':
-    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2, 3"
     if not os.path.exists(args.checkpoint_dir):
         os.makedirs(args.checkpoint_dir)
         os.makedirs("checkpoint/netG")
