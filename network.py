@@ -142,7 +142,7 @@ class Attention(nn.Module):
         f = self.conv2d_f(x).view(b, self.ch // 2, -1)   # (b, ch/2, h*w)
         g = self.conv2d_g(y).view(b, self.ch // 2, -1)
         g = g.permute(0, 2, 1)                           # (b, h*w, ch/2)
-        h = self.conv2d_h(y).view(b, self.ch2, -1)
+        h = self.conv2d_h(y).view(b, self.ch, -1)
         h = h.permute(0, 2, 1)                           # (b, h*w, ch)
 
         s = torch.matmul(g, f)                           # (b, h*w, h*w)
