@@ -44,12 +44,6 @@ class DeblurDataset(Dataset):
         # Downsample the blurry image to (64, 64)
         img_A = img_A.resize((self.args.fine_size, self.args.fine_size), resample=Image.BILINEAR)
 
-        # Upwnsample the blurry image to fine_size x 4
-        new_h = self.args.fine_size * self.args.upscale
-        new_w = self.args.fine_size * self.args.upscale
-        img_A = transforms.Resize((new_h, new_w))(img_A)
-        # img_B = transforms.Resize((new_h, new_w))(img_A)  # commented because new_h = h for the sharp when upscale = 4
-
         if np.random.random() < 0.5:
             img_A = img_A.transpose(Image.FLIP_LEFT_RIGHT)
             img_B = img_B.transpose(Image.FLIP_LEFT_RIGHT)

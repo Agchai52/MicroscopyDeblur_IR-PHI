@@ -81,24 +81,32 @@ class Generator(nn.Module):
 
         self.att_net = Attention(self.input_nc, self.ngf // 4)
 
-        self.res_net1 = ResBlock(self.ngf, self.ngf)
-        self.res_net2 = ResBlock(self.ngf, self.ngf)
-        self.res_net3 = ResBlock(self.ngf, self.ngf)
+        self.res_net1 = ResBlock(self.ngf // 8, self.ngf // 8)
+        self.res_net2 = ResBlock(self.ngf // 16, self.ngf // 16)
 
-        self.end_net = nn.Sequential(nn.Conv2d(self.ngf, self.input_nc, 1, 1, 0), nn.Tanh())
+        self.up_net1 = nn.Sequential(
+            nn.ConvTranspose2d(self.ngf // 4, self.ngf // 8, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.SELU(inplace=True))
+
+        self.up_net2 = nn.Sequential(
+            nn.ConvTranspose2d(self.ngf // 8, self.ngf // 16, kernel_size=3, stride=2, padding=1, output_padding=1),
+            nn.SELU(inplace=True))
+
+        self.end_net = nn.Sequential(nn.Conv2d(self.ngf // 16, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, x, roi):
         b, _, h, w = x.shape
         # Attention
-        y1 = self.att_net(x, roi)
+        y1 = self.att_net(x, roi)  # (b, self.ngf // 4, h, w)
 
         # Residual
-        y2 = self.res_net1(y1)
-        y3 = self.res_net2(y2)
-        y4 = self.res_net3(y3)
+        y1 = self.up_net1(y1)      # (b, self.ngf // 8, h, w)
+        y2 = self.res_net1(y1)     # (b, self.ngf // 8, h, w)
+        y2 = self.up_net1(y2)      # (b, self.ngf // 16, h, w)
+        y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
 
-        y5 = self.end_net(y4)
-        return y5
+        y4 = self.end_net(y3)
+        return y4
 
 
 class ROINet(nn.Module):
@@ -118,7 +126,6 @@ class ROINet(nn.Module):
             layer(self.input_nc, self.ngf, 3, 1, 2, 2),
             layer(self.ngf, self.ngf, 3, 1, 2, 2),
             layer(self.ngf, self.ngf, 3, 1, 2, 2),
-            layer(self.ngf, self.ngf, 3, 1, 2, 2),
             nn.Conv2d(self.ngf, self.input_nc, 1, 1, 0),
             nn.Tanh()
         )
@@ -132,9 +139,9 @@ class Attention(nn.Module):
         super(Attention, self).__init__()
         self.input_nc = input_nc
         self.ch = ch
-        self.conv2d_f = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1, 0)
-        self.conv2d_g = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1, 0)
-        self.conv2d_h = nn.Conv2d(self.input_nc, self.ch, 1, 1, 0)
+        self.conv2d_f = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
+        self.conv2d_g = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
+        self.conv2d_h = nn.Conv2d(self.input_nc, self.ch, 1, 1)
         self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
 
     def forward(self, x, y):
