@@ -140,29 +140,29 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
             bean_size += 1
         bean_loc_x, bean_loc_y = bean_loc
         bean = generate_bean(bean_size=bean_size)
-        if 0 <= bean_loc_y - bean_size / 2:
-            left = bean_loc_y - bean_size/2
+        if 0 <= bean_loc_y - bean_size // 2:
+            left = bean_loc_y - bean_size // 2
         else:
             left = 0
-            bean = bean[:, (bean_size/2 - bean_loc_y):]
+            bean = bean[:, (bean_size//2 - bean_loc_y):]
 
-        if bean_loc_y + bean_size / 2 < image_size:
-            right = bean_loc_y + bean_size/2
+        if bean_loc_y + bean_size // 2 < image_size:
+            right = bean_loc_y + bean_size//2
         else:
             right = image_size
-            bean = bean[:, 0:(image_size + bean_size / 2 - bean_loc_y)]
+            bean = bean[:, 0:(image_size + bean_size // 2 - bean_loc_y)]
 
-        if 0 <= bean_loc_x - bean_size / 2:
-            up = bean_loc_x - bean_size/2
+        if 0 <= bean_loc_x - bean_size // 2:
+            up = bean_loc_x - bean_size // 2
         else:
             up = 0
-            bean = bean[(bean_size/2 - bean_loc_x):, :]
+            bean = bean[(bean_size//2 - bean_loc_x):, :]
 
-        if bean_loc_x + bean_size / 2 < image_size:
-            down = bean_loc_x + bean_size/2
+        if bean_loc_x + bean_size // 2 < image_size:
+            down = bean_loc_x + bean_size//2
         else:
             down = image_size
-            bean = bean[:(image_size + bean_size / 2 - bean_loc_x), :]
+            bean = bean[:(image_size + bean_size // 2 - bean_loc_x), :]
 
         background[up:down, left:right] += bean
 
