@@ -110,7 +110,7 @@ def train(args):
             ###########################
             optimizer_R.zero_grad()
 
-            roi_B_ = F.interpolate(roi_B, (roi_B.shape[2]*4, roi_B.shape[3]*4), mode="bilinear")
+            roi_B_ = F.interpolate(roi_B, (args.load_size, args.load_size), mode="bilinear")
 
             loss_roi = criterion_L2(roi_B_, real_B_)
 
