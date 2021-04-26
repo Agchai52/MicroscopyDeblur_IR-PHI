@@ -107,18 +107,18 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
     bean_locs = []
     for i in range(bean_num):
         # Sample loc for the first bean
-        bean_loc = list(np.random.randint(low=0, high=image_size - bean_size / 2, size=(2, )))
+        bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         bean_locs.append(bean_loc)
 
         # Sample loc for the second bean
         if np.random.random() < 0.3:
             new_loc = [0, 0]
-            dist1 = list(np.random.randint(low=bean_size / 2, high=bean_size + 1, size=(2, )))
+            dist1 = list(np.random.randint(low=bean_size // 2, high=bean_size + 1, size=(2, )))
             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
             new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
 
-            if (bean_size / 2) < new_loc[0] < (image_size - bean_size / 2) \
-                    and (bean_size / 2) < new_loc[1] < (image_size - bean_size / 2):
+            if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+                    and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
                 bean_locs.append(new_loc)
 
                 # Sample loc for the third bean
@@ -128,8 +128,8 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
                     new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
                     new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
 
-                    if (bean_size / 2) < new_loc[0] < (image_size - bean_size / 2) \
-                            and (bean_size / 2) < new_loc[1] < (image_size - bean_size / 2):
+                    if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+                            and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
                         bean_locs.append(new_loc)
 
     background = np.zeros((image_size, image_size))
@@ -147,7 +147,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
             bean = bean[:, (bean_size//2 - bean_loc_y):]
 
         if bean_loc_y + bean_size // 2 < image_size:
-            right = bean_loc_y + bean_size//2
+            right = bean_loc_y + bean_size // 2
         else:
             right = image_size
             bean = bean[:, 0:(image_size + bean_size // 2 - bean_loc_y)]
@@ -159,7 +159,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
             bean = bean[(bean_size//2 - bean_loc_x):, :]
 
         if bean_loc_x + bean_size // 2 < image_size:
-            down = bean_loc_x + bean_size//2
+            down = bean_loc_x + bean_size // 2
         else:
             down = image_size
             bean = bean[:(image_size + bean_size // 2 - bean_loc_x), :]
