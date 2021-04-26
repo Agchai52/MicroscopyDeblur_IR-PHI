@@ -145,7 +145,7 @@ class Attention(nn.Module):
         #self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
 
     def forward(self, x, y):
-        b, _, w, h = x.shape
+        b, _, h, w = x.shape
         f = self.conv2d_f(x).view(b, self.ch // 2, -1)   # (b, ch/2, h*w)
         g = self.conv2d_g(y).view(b, self.ch // 2, -1)
         g = g.permute(0, 2, 1)                           # (b, h*w, ch/2)
@@ -155,6 +155,7 @@ class Attention(nn.Module):
         s = torch.matmul(g, f)                           # (b, h*w, h*w)
         beta = F.softmax(s, dim=-1)                      # (b, h*w, h*w)
         o = torch.matmul(beta, h)                        # (b, h*w, ch)
+        o = permute(0, 2, 1).view(b, self.ch, h, w)
         return o
 
 
