@@ -109,7 +109,7 @@ def train(args):
 
             roi_B_interp = F.interpolate(roi_B, (args.load_size, args.load_size), mode="bilinear")
 
-            threshold = -0.4
+            threshold = -0.3
             max_v = 1.0 * torch.ones_like(real_B_)
             min_v = -1.0 * torch.ones_like(real_B_)
             roi_B_real = torch.where(real_B_ <= threshold, min_v, max_v)
