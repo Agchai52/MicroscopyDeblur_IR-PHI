@@ -76,7 +76,7 @@ class RealImage(Dataset):
             right = (new_w - w) - left
             down = (new_h - h) - up
             img_A_arr = np.asarray(img_A)
-            img_A_arr = np.pad(img_A_arr, ((up, down), (left, right)), mode='symmetric')
+            img_A_arr = np.pad(img_A_arr, ((left, right), (up, down)), mode='symmetric')
             img_A = Image.fromarray(img_A_arr)
 
         w = int(img_A.size[0])
