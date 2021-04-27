@@ -106,7 +106,7 @@ class Generator(nn.Module):
         y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
 
         y4 = self.end_net(y3)
-        return y4
+        return y4 + x
 
 
 class ROINet(nn.Module):
