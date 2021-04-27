@@ -109,7 +109,8 @@ def train(args):
 
             roi_B_interp = F.interpolate(roi_B, (args.load_size, args.load_size), mode="bilinear")
 
-            roi_B_real = -1 * nn.Threshold(0.4, -1)(-1 * real_B_)
+            roi_B_real = nn.Threshold(-0.4, 0.0)(real_B_)
+            roi_B_real = -1 * nn.Threshold(0.41, -1.0)(-1 * roi_B_real)
             loss_roi = criterion_L2(roi_B_interp, roi_B_real)
 
             loss_roi.backward()
