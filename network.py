@@ -137,7 +137,7 @@ class ROINet(nn.Module):
         b, c, h, w = x.shape
         y = self.roi_net(x)
         y = y.view([b, c, -1])
-        y = y.mean(dim=-1, keepdim=True)
+        y = y.mean(dim=-1, keepdim=True).view([b, c, 1, 1])
         y = nn.Tanh()(y)
         y = y.expand(b, c, h, w)
 
