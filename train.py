@@ -84,12 +84,16 @@ def train(args):
             fake_S = netG(real_B)
             fake_B = netG_S2B(real_S)
 
-            recov_B = netG_S2B(fake_S)
+            fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
+
             recov_S = netG(fake_B)
+            recov_B = netG_S2B(fake_S)
             ############################
             # (1) Update G network:
             ###########################
             optimizer_G.zero_grad()
+
+
 
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
             loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
