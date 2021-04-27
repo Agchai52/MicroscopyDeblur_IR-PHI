@@ -97,7 +97,7 @@ class Generator(nn.Module):
 
     def forward(self, x, roi):
         b, _, h, w = x.shape
-        x2 = F.interpolate(x, (h * 4, w * 4), mode="bilinear")
+        # x2 = F.interpolate(x, (h * 4, w * 4), mode="bilinear")
         # Attention
         y1 = self.att_net(x, roi)  # (b, self.ngf // 4, h, w)
 
@@ -108,32 +108,42 @@ class Generator(nn.Module):
         y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
 
         y4 = self.end_net(y3)
-        return y4 + x2
+        return y4
 
 
 class ROINet(nn.Module):
     def __init__(self, args, device='cpu'):
         super(ROINet, self).__init__()
 
-        def layer(c_in, c_out, k, s, p, d=1):
+        def layer(c_in, c_out, k=5, s=2, p=0, d=1):
             return nn.Sequential(
+                nn.ReflectionPad2d([1, 2, 1, 2]),
                 nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True)
             )
 
         self.input_nc = args.input_nc
-        self.ngf = args.ngf
+        self.ngf = args.ngf // 8
         self.device = device
 
         self.roi_net = nn.Sequential(
-            layer(self.input_nc, self.ngf, 3, 1, 2, 2),
-            layer(self.ngf, self.ngf, 3, 1, 2, 2),
-            layer(self.ngf, self.ngf, 3, 1, 2, 2),
-            nn.Conv2d(self.ngf, self.input_nc, 1, 1, 0),
-            nn.Tanh()
+            layer(self.input_nc, self.ngf),     # (B, 8, 32, 32)
+            layer(self.ngf * 1, self.ngf * 2),  # (B, 16, 16, 16)
+            layer(self.ngf * 2, self.ngf * 4),  # (B, 32, 8, 8)
+            layer(self.ngf * 4, self.ngf * 8),  # (B, 64, 4, 4)
+            nn.Conv2d(self.ngf * 8, self.input_nc, 1, 1, 0),    # (B, 1, 4, 4)
         )
 
     def forward(self, x):
-        return self.roi_net(x)
+        b, c, h, w = x.shape
+        y = self.roi_net(x)
+        y = y.view([b, -1])
+        y = y.mean(dim=-1, keepdim=True)
+        y = nn.Tanh()(y)
+
+        max_v = 1.0 * torch.ones_like(x)
+        min_v = -1.0 * torch.ones_like(x)
+        roi_x = torch.where(x <= y, min_v, max_v)
+        return roi_x
 
 
 class Attention(nn.Module):

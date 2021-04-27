@@ -80,7 +80,7 @@ def train(args):
     netG_S2B = BlurModel(args, device)
 
     print('===> Setting up loss functions')
-    criterion_L2 = nn.MSELoss().to(device)
+    criterion_L2 = nn.MSELoss(reduction="sum").to(device)
 
     counter = 0
     PSNR_average = []
@@ -99,9 +99,9 @@ def train(args):
 
             roi_B = netR(real_B)
             fake_S = netG(real_B, roi_B.detach())
-
             recov_B = netG_S2B(fake_S)
             real_B_ = netG_S2B(real_S)
+
             ############################
             # (1) Update ROI network:
             ###########################
