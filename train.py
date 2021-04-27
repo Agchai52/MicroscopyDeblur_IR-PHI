@@ -64,6 +64,7 @@ def train(args):
 
     print('===> Setting up loss functions')
     criterion_L2 = nn.MSELoss().to(device)
+    criterion_grad = GradientLoss(device=device).to(device)
 
     counter = 0
     PSNR_average = []
@@ -89,9 +90,10 @@ def train(args):
             optimizer_G.zero_grad()
 
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
+            loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
             loss_recover = criterion_L2(recov_B, real_B_) * args.LR_lambda
 
-            loss_g = loss_l2 + loss_recover
+            loss_g = loss_l2 + loss_recover + loss_grad
 
             loss_g.backward()
             optimizer_G.step()
@@ -101,10 +103,10 @@ def train(args):
             print(
                 "===> Epoch[{}]({}/{}): Loss_G: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_g.item(), loss_l2.item(), loss_recover.item()))
+                    loss_grad.item(), loss_l2.item(), loss_recover.item()))
 
             # To record losses in a .txt file
-            losses_dg = [loss_g.item(), loss_l2.item(), loss_recover.item()]
+            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
             losses_dg_str = " ".join(str(v) for v in losses_dg)
 
             with open(loss_record, 'a+') as file:
