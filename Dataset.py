@@ -34,7 +34,7 @@ class DeblurDataset(Dataset):
         img_A = img_A.resize((self.args.fine_size, self.args.fine_size), resample=Image.BILINEAR)
 
         # Upsample the blurry image to (256, 256)
-        # img_A = img_A.resize((self.args.load_size, self.args.load_size), resample=Image.BILINEAR)
+        img_A = img_A.resize((self.args.load_size, self.args.load_size), resample=Image.BILINEAR)
 
         if np.random.random() < 0.5:
             img_A = img_A.transpose(Image.FLIP_LEFT_RIGHT)
@@ -67,6 +67,8 @@ class RealImage(Dataset):
 
         w = int(img_A.size[0])
         h = int(img_A.size[1])
+
+        img_A = img_A.resize((w * 4, h * 4), resample=Image.BILINEAR)
 
         if w % 4 != 0 or h % 4 != 0:
             new_h = (h // 4 + 1) * 4 if h % 4 != 0 else h
