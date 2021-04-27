@@ -70,12 +70,13 @@ class RealImage(Dataset):
             new_w = (w // 4 + 1) * 4 if w % 4 != 0 else w
             left = (new_w - w) // 2
             up = (new_h - h) // 2
-            right = new_w - left
-            down = new_h - up
+            right = (new_w - w) - left
+            down = (new_h - h) - up
             img_A_arr = np.asarray(img_A)
             img_A_arr = np.pad(img_A_arr, ((up, down), (left, right)), mode='symmetric')
             img_A = Image.fromarray(img_A_arr)
 
+        print(img_A.shape)
         img_A = self.transform(img_A)
 
         return img_A, img_name
