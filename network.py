@@ -102,11 +102,11 @@ class Generator(nn.Module):
 
         self.att_net = Attention(self.ngf * 4)  # (B, 16, 64, 64)
 
-        self.res_net1 = ResBlock(self.ngf * 4, self.ngf * 4)
+        self.res_net1 = ResBlock(self.ngf * 2, self.ngf * 2)
         self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
 
         self.up_net1 = up(self.ngf * 4, self.ngf * 2)
-        self.up_net2 = up(self.ngf * 4, self.ngf * 1)
+        self.up_net2 = up(self.ngf * 4, self.ngf * 2)
 
         self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 2, self.input_nc, 1, 1, 0), nn.Tanh())
 
@@ -120,14 +120,15 @@ class Generator(nn.Module):
 
         # Decode
         d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
-        d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
-        # d1 = self.res_net1(d1)
+        # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
+        d1 = self.res_net1(d1)
 
         d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
-        d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
+        # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
+        d2 = self.res_net2(d2)
 
-        y4 = self.end_net(d2)
-        return y4
+        y = self.end_net(d2)
+        return y
 
 
 class Attention(nn.Module):
