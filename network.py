@@ -108,7 +108,7 @@ class Generator(nn.Module):
         self.up_net1 = up(self.ngf * 4, self.ngf * 2)
         self.up_net2 = up(self.ngf * 4, self.ngf * 1)
 
-        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
+        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 2, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, x):
         # Encode
