@@ -76,7 +76,7 @@ class RealImage(Dataset):
             img_A_arr = np.pad(img_A_arr, ((up, down), (left, right)), mode='symmetric')
             img_A = Image.fromarray(img_A_arr)
 
-        print(img_A.shape)
+        print(img_A.size)
         img_A = self.transform(img_A)
 
         return img_A, img_name
