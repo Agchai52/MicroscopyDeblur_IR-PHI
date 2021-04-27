@@ -47,6 +47,7 @@ def test(args):
         netR.load_state_dict(checkpointR['model_state_dict'])
         netR.eval()
 
+    netG_S2B = BlurModel(args, device)
     print("====> Loading data")
     ############################
     # For DeblurMicroscope dataset
@@ -75,12 +76,19 @@ def test(args):
             real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
             roi_B = netR(real_B)
             pred_S = netG(real_B, roi_B)
+
+            real_B_ = netG_S2B(real_S)
+            threshold = -0.3
+            max_v = 1.0 * torch.ones_like(real_B_)
+            min_v = -1.0 * torch.ones_like(real_B_)
+            roi_B_real = torch.where(real_B_ <= threshold, min_v, max_v)
+
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
-                img_R = roi_B.detach().squeeze(0).cpu()
+                img_R = roi_B_real.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
                 save_img(img_R, '{}/roi_'.format(args.test_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}'.format(img_name[0], cur_psnr, cur_ssim))
