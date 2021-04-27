@@ -78,6 +78,7 @@ class Generator(nn.Module):
         self.ngf = args.ngf
         self.device = device
         self.loss = nn.MSELoss()
+        self.load_size = args.load_size
 
         self.att_net = Attention(self.input_nc, self.ngf // 4)
 
@@ -96,6 +97,7 @@ class Generator(nn.Module):
 
     def forward(self, x, roi):
         b, _, h, w = x.shape
+        x2 = F.interpolate(x, (self.load_size, self.load_size), mode="bilinear")
         # Attention
         y1 = self.att_net(x, roi)  # (b, self.ngf // 4, h, w)
 
@@ -106,7 +108,7 @@ class Generator(nn.Module):
         y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
 
         y4 = self.end_net(y3)
-        return y4 + x
+        return y4 + x2
 
 
 class ROINet(nn.Module):
