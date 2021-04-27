@@ -136,9 +136,10 @@ class ROINet(nn.Module):
     def forward(self, x):
         b, c, h, w = x.shape
         y = self.roi_net(x)
-        y = y.view([b, self.input_nc, -1])
+        y = y.view([b, -1])
         y = y.mean(dim=-1, keepdim=True)
         y = nn.Tanh()(y)
+        y = y.expand(b, c, h, w)
 
         max_v = 1.0 * torch.ones_like(x)
         min_v = -1.0 * torch.ones_like(x)
