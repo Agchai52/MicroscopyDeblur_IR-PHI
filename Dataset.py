@@ -66,8 +66,8 @@ class RealImage(Dataset):
         h = int(img_A.size[1])
 
         if w % 4 != 0 or h % 4 != 0:
-            new_h = (h // 4 + 2) * 4 if h % 4 != 0 else h
-            new_w = (w // 4 + 2) * 4 if w % 4 != 0 else w
+            new_h = (h // 4 + 1) * 4 if h % 4 != 0 else h
+            new_w = (w // 4 + 1) * 4 if w % 4 != 0 else w
             left = (new_w - w) // 2
             up = (new_h - h) // 2
             right = new_w - left
