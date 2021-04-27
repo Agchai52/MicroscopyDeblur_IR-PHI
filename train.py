@@ -114,7 +114,7 @@ def train(args):
             min_v = -1.0 * torch.ones_like(real_B_)
             roi_B_real = torch.where(real_B_ <= threshold, min_v, max_v)
 
-            loss_roi = criterion_L2(roi_B_interp, roi_B_real)
+            loss_roi = criterion_L2(roi_B_interp, roi_B_real) * args.LR_lambda
 
             loss_roi.backward()
             optimizer_R.step()
