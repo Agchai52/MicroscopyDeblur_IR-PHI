@@ -68,8 +68,6 @@ class RealImage(Dataset):
         w = int(img_A.size[0])
         h = int(img_A.size[1])
 
-        img_A = img_A.resize((w * 4, h * 4), resample=Image.BILINEAR)
-
         if w % 4 != 0 or h % 4 != 0:
             new_h = (h // 4 + 1) * 4 if h % 4 != 0 else h
             new_w = (w // 4 + 1) * 4 if w % 4 != 0 else w
@@ -80,6 +78,11 @@ class RealImage(Dataset):
             img_A_arr = np.asarray(img_A)
             img_A_arr = np.pad(img_A_arr, ((up, down), (left, right)), mode='symmetric')
             img_A = Image.fromarray(img_A_arr)
+
+        w = int(img_A.size[0])
+        h = int(img_A.size[1])
+
+        img_A = img_A.resize((w * 4, h * 4), resample=Image.BILINEAR)
 
         print(img_A.size)
         img_A = self.transform(img_A)
