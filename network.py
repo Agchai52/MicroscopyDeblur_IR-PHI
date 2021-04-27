@@ -136,7 +136,7 @@ class ROINet(nn.Module):
     def forward(self, x):
         b, c, h, w = x.shape
         y = self.roi_net(x)
-        y = y.view([b, -1])
+        y = y.view([b, self.input_nc, -1])
         y = y.mean(dim=-1, keepdim=True)
         y = nn.Tanh()(y)
 
