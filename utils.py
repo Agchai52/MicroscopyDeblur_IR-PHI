@@ -89,7 +89,7 @@ def plot_losses():
     plt.xlabel("epochs")
     plt.ylabel("Average PSNR")
     # plt.xlim(xmin=-5, xmax=300)  # xmax=300
-    plt.ylim(ymin=0, ymax=30.)  # ymax=60
+    # plt.ylim(ymin=0, ymax=30.)  # ymax=60
     plt.title("Validation PSNR")
     plt.savefig("plot_psnr_loss.jpg")
 
