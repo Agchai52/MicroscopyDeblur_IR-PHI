@@ -30,51 +30,34 @@ def train(args):
 
     if torch.cuda.device_count() >= 1:
         device = torch.device("cuda")
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
     else:
         device = torch.device("cpu")
-    model_G = Generator(args, device)
-    model_R = ROINet(args, device)
 
-    if torch.cuda.device_count() >= 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model_G = nn.DataParallel(model_G)
-        model_R = nn.DataParallel(model_R)
+    model_G = Generator(args, device)
+    model_G = nn.DataParallel(model_G)
 
     print('===> Building models')
-    net_g_path = "checkpoint/netG"
-    net_r_path = "checkpoint/netR"
-
     netG = model_G.to(device)
-    netR = model_R.to(device)
-
     optimizer_G = optim.Adam(netG.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
-    optimizer_R = optim.Adam(netR.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
+    net_g_path = "checkpoint/netG"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_r_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         netG.apply(weights_init)
-        netR.apply(weights_init)
         pre_epoch = 0
     else:
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
-        model_path_R = find_latest_model(net_r_path)
 
         checkpointG = torch.load(model_path_G)
         netG.load_state_dict(checkpointG['model_state_dict'])
         optimizer_G.load_state_dict(checkpointG['optimizer_state_dict'])
 
-        checkpointR = torch.load(model_path_R)
-        netR.load_state_dict(checkpointR['model_state_dict'])
-        optimizer_R.load_state_dict(checkpointR['optimizer_state_dict'])
-
         pre_epoch = checkpointG['epoch']
 
     netG.train()
-    netR.train()
-
     print(netG)
-    print(netR)
 
     # Gemometric Blur Model as Second Generator
     netG_S2B = BlurModel(args, device)
@@ -97,29 +80,11 @@ def train(args):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)
 
-            roi_B = netR(real_B)
-            fake_S = netG(real_B, roi_B.detach())
+            fake_S = netG(real_B)
             recov_B = netG_S2B(fake_S)
             real_B_ = netG_S2B(real_S)
-
             ############################
-            # (1) Update ROI network:
-            ###########################
-            optimizer_R.zero_grad()
-
-            roi_B_interp = F.interpolate(roi_B, (args.load_size, args.load_size), mode="bilinear")
-
-            threshold = -0.3
-            max_v = 1.0 * torch.ones_like(real_B_)
-            min_v = -1.0 * torch.ones_like(real_B_)
-            roi_B_real = torch.where(real_B_ <= threshold, min_v, max_v)
-
-            loss_roi = criterion_L2(roi_B_interp, roi_B_real) * args.LR_lambda
-
-            loss_roi.backward()
-            optimizer_R.step()
-            ############################
-            # (2) Update G network:
+            # (1) Update G network:
             ###########################
             optimizer_G.zero_grad()
 
@@ -134,12 +99,12 @@ def train(args):
             counter += 1
 
             print(
-                "===> Epoch[{}]({}/{}): Loss_ROI: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f}".format(
+                "===> Epoch[{}]({}/{}): Loss_G: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_roi.item(), loss_l2.item(), loss_recover.item()))
+                    loss_g.item(), loss_l2.item(), loss_recover.item()))
 
             # To record losses in a .txt file
-            losses_dg = [loss_roi.item(), loss_l2.item(), loss_recover.item()]
+            losses_dg = [loss_g.item(), loss_l2.item(), loss_recover.item()]
             losses_dg_str = " ".join(str(v) for v in losses_dg)
 
             with open(loss_record, 'a+') as file:
@@ -147,24 +112,17 @@ def train(args):
 
             if (counter % 500 == 1) or ((epoch == args.epoch - 1) and (iteration == len(train_data_loader) - 1)):
                 net_g_save_path = net_g_path + "/G_model_epoch_{}.pth".format(epoch+1)
-                net_r_save_path = net_r_path + "/R_model_epoch_{}.pth".format(epoch+1)
 
                 torch.save({
                     'epoch': epoch + 1,
                     'model_state_dict': netG.state_dict(),
                     'optimizer_state_dict': optimizer_G.state_dict()
                 }, net_g_save_path)
-                torch.save({
-                    'epoch': epoch + 1,
-                    'model_state_dict': netR.state_dict(),
-                    'optimizer_state_dict': optimizer_R.state_dict()
-                }, net_r_save_path)
 
                 print("Checkpoint saved to {}".format("checkpoint/"))
 
         # Update Learning rate
         #lr_scheduler_G.step()
-        #lr_scheduler_D.step()
 
         if args.save_intermediate:
             all_psnr = []
@@ -173,8 +131,7 @@ def train(args):
                 for batch in test_data_loader:
                     real_B, real_S, img_name = batch[0], batch[1], batch[2]
                     real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
-                    roi_B = netR(real_B)
-                    pred_S = netG(real_B, roi_B)
+                    pred_S = netG(real_B)
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)

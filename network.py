@@ -74,50 +74,9 @@ class Generator(nn.Module):
     def __init__(self, args, device='cpu'):
         super(Generator, self).__init__()
 
-        self.input_nc = args.input_nc
-        self.ngf = args.ngf
-        self.device = device
-        self.loss = nn.MSELoss()
-        self.load_size = args.load_size
-
-        self.att_net = Attention(self.input_nc, self.ngf // 4)
-
-        self.res_net1 = ResBlock(self.ngf // 8, self.ngf // 8)
-        self.res_net2 = ResBlock(self.ngf // 16, self.ngf // 16)
-
-        self.up_net1 = nn.Sequential(
-            nn.ConvTranspose2d(self.ngf // 4, self.ngf // 8, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.SELU(inplace=True))
-
-        self.up_net2 = nn.Sequential(
-            nn.ConvTranspose2d(self.ngf // 8, self.ngf // 16, kernel_size=3, stride=2, padding=1, output_padding=1),
-            nn.SELU(inplace=True))
-
-        self.end_net = nn.Sequential(nn.Conv2d(self.ngf // 16, self.input_nc, 1, 1, 0), nn.Tanh())
-
-    def forward(self, x, roi):
-        b, _, h, w = x.shape
-        # x2 = F.interpolate(x, (h * 4, w * 4), mode="bilinear")
-        # Attention
-        y1 = self.att_net(x, roi)  # (b, self.ngf // 4, h, w)
-
-        # Residual
-        y1 = self.up_net1(y1)      # (b, self.ngf // 8, h, w)
-        y2 = self.res_net1(y1)     # (b, self.ngf // 8, h, w)
-        y2 = self.up_net2(y2)      # (b, self.ngf // 16, h, w)
-        y3 = self.res_net2(y2)     # (b, self.ngf // 16, h, w)
-
-        y4 = self.end_net(y3)
-        return y4
-
-
-class ROINet(nn.Module):
-    def __init__(self, args, device='cpu'):
-        super(ROINet, self).__init__()
-
-        def down(c_in, c_out, k=5, s=2, p=0, d=1):
+        def down(c_in, c_out, k=3, s=2, p=0, d=1):
             return nn.Sequential(
-                nn.ReflectionPad2d([1, 2, 1, 2]),
+                nn.ReflectionPad2d([0, 1, 0, 1]),
                 nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True)
             )
 
@@ -128,48 +87,80 @@ class ROINet(nn.Module):
             )
 
         self.input_nc = args.input_nc
-        self.ngf = args.ngf // 8
+        self.ngf = args.ngf
         self.device = device
+        self.loss = nn.MSELoss()
+        self.load_size = args.load_size
 
-        self.roi_net = nn.Sequential(
-            down(self.input_nc, self.ngf),     # (B, 8, 32, 32)
-            down(self.ngf * 1, self.ngf * 2),  # (B, 16, 16, 16)
-            down(self.ngf * 2, self.ngf * 4),  # (B, 32, 8, 8)
-            down(self.ngf * 4, self.ngf * 8),  # (B, 64, 4, 4)
-            up(self.ngf * 8, self.ngf * 4),    # (B, 32, 8, 8)
-            up(self.ngf * 4, self.ngf * 2),    # (B, 16, 16, 16)
-            up(self.ngf * 2, self.ngf * 1),    # (B, 8, 32, 32)
-            up(self.ngf * 1, self.ngf * 1),    # (B, 1, 64, 64)
-            nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0),    # (B, 1, 64, 64)
-            nn.Tanh()
+        self.in_net1 = nn.Sequential(
+            nn.Conv2d(self.input_nc, self.ngf, 3, 1, 1),
+            nn.SELU(inplace=True),
         )
 
+        self.in_net2 = down(self.ngf * 1, self.ngf * 2)
+        self.in_net3 = down(self.ngf * 2, self.ngf * 4)
+
+        self.att_net = Attention(self.ngf * 4)  # (B, 16, 64, 64)
+
+        self.res_net1 = ResBlock(self.ngf * 4, self.ngf * 4)
+        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+
+        self.up_net1 = up(self.ngf * 4, self.ngf * 2)
+        self.up_net2 = up(self.ngf * 2, self.ngf * 2)
+        self.up_net3 = up(self.ngf * 6, self.ngf * 2)
+        self.up_net4 = up(self.ngf * 4, self.ngf * 1)
+
+        self.max_pool = nn.MaxPool2d(4)
+
+        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 2, self.input_nc, 1, 1, 0), nn.Tanh())
+
     def forward(self, x):
-        return self.roi_net(x)
+        # Encode
+        e1 = self.in_net1(x)   # (B, 64, 64, 64)
+        e2 = self.in_net2(e1)  # (B, 64*2, 32, 32)
+        e3 = self.in_net3(e2)  # (B, 64*4, 16, 16)
+        # Attention
+        y = self.att_net(e3)   # (B, 64*4, 16, 16)
+
+        # Decode
+        d1 = self.up_net1(y)   # (B, 64*2, 32, 32)
+        # d1 = self.res_net1(d1)
+
+        d2 = self.up_net2(d1)  # (B, 64*2, 64, 64)
+        d2 = torch.cat([self.max_pool(e3), d2])  # (B, 64*6, 64, 64)
+
+        d3 = self.up_net3(d2)  # (B, 64*2, 64, 64)
+        d3 = torch.cat([self.max_pool(e2), d3])  # (B, 64*4, 128, 128)
+
+        d4 = self.up_net4(d3)  # (B, 64*1, 64, 64)
+        d4 = torch.cat([self.max_pool(e1), d4])  # (B, 64*2, 256, 256)
+
+        y4 = self.end_net(d4)
+        return y4
 
 
 class Attention(nn.Module):
-    def __init__(self, input_nc, ch):
+    def __init__(self, ch):
         super(Attention, self).__init__()
-        self.input_nc = input_nc
         self.ch = ch
-        self.conv2d_f = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
-        self.conv2d_g = nn.Conv2d(self.input_nc, self.ch // 2, 1, 1)
-        self.conv2d_h = nn.Conv2d(self.input_nc, self.ch, 1, 1)
-        #self.gamma = nn.Parameter(torch.Tensor([0.5]), requires_grad=True)
+        self.conv2d_f = nn.Conv2d(self.ch, self.ch // 2, 1, 1)
+        self.conv2d_g = nn.Conv2d(self.ch, self.ch // 2, 1, 1)
+        self.conv2d_h = nn.Conv2d(self.ch, self.ch, 1, 1)
+        self.gamma = nn.Parameter(torch.Tensor([0.0]), requires_grad=True)
 
-    def forward(self, x, y):
+    def forward(self, x):
         b, _, height, width = x.shape
         f = self.conv2d_f(x).view(b, self.ch // 2, -1)   # (b, ch/2, h*w)
-        g = self.conv2d_g(y).view(b, self.ch // 2, -1)
+        g = self.conv2d_g(x).view(b, self.ch // 2, -1)
         g = g.permute(0, 2, 1)                           # (b, h*w, ch/2)
-        h = self.conv2d_h(y).view(b, self.ch, -1)
+        h = self.conv2d_h(x).view(b, self.ch, -1)
         h = h.permute(0, 2, 1)                           # (b, h*w, ch)
 
         s = torch.matmul(g, f)                           # (b, h*w, h*w)
         beta = F.softmax(s, dim=-1)                      # (b, h*w, h*w)
         o = torch.matmul(beta, h)                        # (b, h*w, ch)
         o = o.permute(0, 2, 1).view(b, self.ch, height, width)
+        o = gamma * o + x
         return o
 
 

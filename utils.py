@@ -73,14 +73,14 @@ def plot_losses():
 
     plt.figure()
     plt.plot(losses_dg[0:-1:100, 1], 'r--', label='l2_loss')
-    plt.plot(losses_dg[0:-1:100, 0], 'b-', label='roi_loss')
+    plt.plot(losses_dg[0:-1:100, 0], 'b-', label='g_loss')
     plt.plot(losses_dg[0:-1:100, 2], 'g-', label='recover_loss')
     plt.xlabel("iteration*100")
     plt.ylabel("Error")
     plt.legend()
     # plt.xlim(xmin=-5, xmax=480)
     plt.ylim(ymin=0, ymax=2)
-    plt.title("L2_ROI_Recover Loss")
+    plt.title("L2_g_Recover Loss")
     plt.savefig("plot_3_losses.jpg")
     # plt.show()
 

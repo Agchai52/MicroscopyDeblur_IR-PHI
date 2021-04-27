@@ -14,25 +14,18 @@ from Dataset import DeblurDataset, RealImage
 def test(args):
     if torch.cuda.device_count() >= 1:
         device = torch.device("cuda")
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
     else:
         device = torch.device("cpu")
 
     model_G = Generator(args, device)
-    model_R = ROINet(args, device)
+    model_G = nn.DataParallel(model_G)
 
-    if torch.cuda.device_count() >= 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model_G = nn.DataParallel(model_G)
-        model_R = nn.DataParallel(model_R)
-
-    print("====> Loading model")
-    net_g_path = "checkpoint/netG"
-    net_r_path = "checkpoint/netR"
-
+    print('===> Loading models')
     netG = model_G.to(device)
-    netR = model_R.to(device)
+    net_g_path = "checkpoint/netG"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_r_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -42,12 +35,6 @@ def test(args):
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
 
-        model_path_R = find_latest_model(net_r_path)
-        checkpointR = torch.load(model_path_R)
-        netR.load_state_dict(checkpointR['model_state_dict'])
-        netR.eval()
-
-    netG_S2B = BlurModel(args, device)
     print("====> Loading data")
     ############################
     # For DeblurMicroscope dataset
@@ -74,23 +61,13 @@ def test(args):
         for batch in test_data_loader:
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
-            roi_B = netR(real_B)
-            pred_S = netG(real_B, roi_B)
-
-            real_B_ = netG_S2B(real_S)
-            threshold = -0.3
-            max_v = 1.0 * torch.ones_like(real_B_)
-            min_v = -1.0 * torch.ones_like(real_B_)
-            roi_B_real = torch.where(real_B_ <= threshold, min_v, max_v)
-
+            pred_S = netG(real_B)
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
-                img_R = roi_B.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-                save_img(img_R, '{}/roi_'.format(args.test_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}'.format(img_name[0], cur_psnr, cur_ssim))
 
     total_time = time.time() - start_time
@@ -103,25 +80,18 @@ def test(args):
 def test_real(args):
     if torch.cuda.device_count() >= 1:
         device = torch.device("cuda")
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
     else:
         device = torch.device("cpu")
 
     model_G = Generator(args, device)
-    model_R = ROINet(args, device)
+    model_G = nn.DataParallel(model_G)
 
-    if torch.cuda.device_count() >= 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model_G = nn.DataParallel(model_G)
-        model_R = nn.DataParallel(model_R)
-
-    print("====> Loading model")
-    net_g_path = "checkpoint/netG"
-    net_r_path = "checkpoint/netR"
-
+    print('===> Loading models')
     netG = model_G.to(device)
-    netR = model_R.to(device)
+    net_g_path = "checkpoint/netG"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_r_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -130,12 +100,6 @@ def test_real(args):
         checkpointG = torch.load(model_path_G)
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
-
-        model_path_R = find_latest_model(net_r_path)
-        checkpointR = torch.load(model_path_R)
-        netR.load_state_dict(checkpointR['model_state_dict'])
-        netR.eval()
-
     print("====> Loading data")
     ############################
     # For Real Images
@@ -149,8 +113,7 @@ def test_real(args):
         for batch in test_data_loader:
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
-            roi_B = netR(real_B)
-            pred_S = netG(real_B, roi_B)
+            pred_S = netG(real_B)
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
