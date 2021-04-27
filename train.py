@@ -109,8 +109,9 @@ def train(args):
 
             roi_B_interp = F.interpolate(roi_B, (args.load_size, args.load_size), mode="bilinear")
 
-            roi_B_real = torch.where(real_B_ > -0.4, real_B_, -1.0)
-            roi_B_real = torch.where(roi_B_real <= -0.4, roi_B_real, 1.0)
+            threshold = torch.Tensor([-0.4]).to(device)
+            roi_B_real = torch.where(real_B_ > threshold, real_B_, -1.0)
+            roi_B_real = torch.where(roi_B_real <= threshold, roi_B_real, 1.0)
             loss_roi = criterion_L2(roi_B_interp, roi_B_real)
 
             loss_roi.backward()
