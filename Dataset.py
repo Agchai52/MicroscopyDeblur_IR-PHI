@@ -13,17 +13,6 @@ class DeblurDataset(Dataset):
         self.transform = transforms.Compose([transforms.ToTensor(),
                                              transforms.Normalize([0.5], [0.5])])
 
-    def add_margin(self, pil_img, new_size):
-        width, height = pil_img.size
-        new_width = new_size[1]
-        new_height = new_size[0]
-
-        left = (new_width - width) // 2
-        top = (new_height - height) // 2
-        result = Image.new(pil_img.mode, (new_width, new_height), 0)
-        result.paste(pil_img, (left, top))
-        return result
-
     def __getitem__(self, index):
         """
         Transforms:
@@ -68,17 +57,6 @@ class RealImage(Dataset):
         self.transform = transforms.Compose([transforms.ToTensor(),
                                              transforms.Normalize((0.5,), (0.5,))])
 
-    def add_margin(self, pil_img, new_size):
-        width, height = pil_img.size
-        new_width = new_size[1]
-        new_height = new_size[0]
-
-        left = (new_width - width) // 2
-        top = (new_height - height) // 2
-        result = Image.new(pil_img.mode, (new_width, new_height), 0)
-        result.paste(pil_img, (left, top))
-        return result
-
     def __getitem__(self, index):
         img_A = Image.open(self.img_path[index] + '.png').convert('L')
         img_name = self.img_path[index][-4:]
@@ -88,9 +66,15 @@ class RealImage(Dataset):
         h = int(img_A.size[1])
 
         if w % 4 != 0 or h % 4 != 0:
-            new_h = (h // 4 + 1) * 4 if h % 4 != 0 else h
-            new_w = (w // 4 + 1) * 4 if w % 4 != 0 else w
-            img_A = self.add_margin(img_A, (new_h, new_w))
+            new_h = (h // 4 + 2) * 4 if h % 4 != 0 else h
+            new_w = (w // 4 + 2) * 4 if w % 4 != 0 else w
+            left = (new_w - w) // 2
+            up = (new_h - h) // 2
+            right = new_w - left
+            down = new_h - up
+            img_A_arr = np.asarray(img_A)
+            img_A_arr = np.pad(img_A_arr, ((up, down), (left, right)), mode='symmetric')
+            img_A = Image.fromarray(img_A_arr)
 
         img_A = self.transform(img_A)
 
