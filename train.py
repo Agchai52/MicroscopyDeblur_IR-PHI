@@ -88,6 +88,8 @@ def train(args):
 
             recov_S = netG(fake_B)
             recov_B = netG_S2B(fake_S)
+
+            real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
             ############################
             # (1) Update G network:
             ###########################
