@@ -97,7 +97,7 @@ class Generator(nn.Module):
 
     def forward(self, x, roi):
         b, _, h, w = x.shape
-        x2 = F.interpolate(x, (self.load_size, self.load_size), mode="bilinear")
+        x2 = F.interpolate(x, (h * 4, w * 4), mode="bilinear")
         # Attention
         y1 = self.att_net(x, roi)  # (b, self.ngf // 4, h, w)
 
