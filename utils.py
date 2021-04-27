@@ -79,7 +79,7 @@ def plot_losses():
     plt.ylabel("Error")
     plt.legend()
     # plt.xlim(xmin=-5, xmax=480)
-    # plt.ylim(ymin=0, ymax=16)
+    plt.ylim(ymin=0, ymax=2)
     plt.title("L2_ROI_Recover Loss")
     plt.savefig("plot_3_losses.jpg")
     # plt.show()
