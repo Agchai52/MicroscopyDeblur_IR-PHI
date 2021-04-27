@@ -115,10 +115,16 @@ class ROINet(nn.Module):
     def __init__(self, args, device='cpu'):
         super(ROINet, self).__init__()
 
-        def layer(c_in, c_out, k=5, s=2, p=0, d=1):
+        def down(c_in, c_out, k=5, s=2, p=0, d=1):
             return nn.Sequential(
                 nn.ReflectionPad2d([1, 2, 1, 2]),
                 nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True)
+            )
+
+        def up(c_in, c_out, k=2, s=2):
+            return nn.Sequential(
+                nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s),
+                nn.SELU(inplace=True)
             )
 
         self.input_nc = args.input_nc
@@ -126,25 +132,20 @@ class ROINet(nn.Module):
         self.device = device
 
         self.roi_net = nn.Sequential(
-            layer(self.input_nc, self.ngf),     # (B, 8, 32, 32)
-            layer(self.ngf * 1, self.ngf * 2),  # (B, 16, 16, 16)
-            layer(self.ngf * 2, self.ngf * 4),  # (B, 32, 8, 8)
-            layer(self.ngf * 4, self.ngf * 8),  # (B, 64, 4, 4)
-            nn.Conv2d(self.ngf * 8, self.input_nc, 1, 1, 0),    # (B, 1, 4, 4)
+            down(self.input_nc, self.ngf),     # (B, 8, 32, 32)
+            down(self.ngf * 1, self.ngf * 2),  # (B, 16, 16, 16)
+            down(self.ngf * 2, self.ngf * 4),  # (B, 32, 8, 8)
+            down(self.ngf * 4, self.ngf * 8),  # (B, 64, 4, 4)
+            up(self.ngf * 8, self.ngf * 4),    # (B, 32, 8, 8)
+            up(self.ngf * 4, self.ngf * 2),    # (B, 16, 16, 16)
+            up(self.ngf * 2, self.ngf * 1),    # (B, 8, 32, 32)
+            up(self.ngf * 1, self.ngf * 1),   # (B, 1, 64, 64)
+            nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0),    # (B, 1, 64, 64)
+            nn.Tanh()
         )
 
     def forward(self, x):
-        b, c, h, w = x.shape
-        y = self.roi_net(x)
-        y = y.view([b, c, -1])
-        y = y.mean(dim=-1, keepdim=True).view([b, c, 1, 1])
-        y = nn.Tanh()(y)
-        y = y.expand(b, c, h, w)
-
-        max_v = 1.0 * torch.ones_like(x)
-        min_v = -1.0 * torch.ones_like(x)
-        roi_x = torch.where(x <= y, min_v, max_v)
-        return roi_x
+        return self.roi_net(x)
 
 
 class Attention(nn.Module):
