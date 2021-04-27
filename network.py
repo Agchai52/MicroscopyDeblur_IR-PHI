@@ -118,10 +118,10 @@ class Generator(nn.Module):
         e2 = self.in_net2(e1)  # (B, 64*2, 32, 32)
         e3 = self.in_net3(e2)  # (B, 64*4, 16, 16)
         # Attention
-        y = self.att_net(e3)   # (B, 64*4, 16, 16)
+        # y = self.att_net(e3)   # (B, 64*4, 16, 16)
 
         # Decode
-        d1 = self.up_net1(y)   # (B, 64*2, 32, 32)
+        d1 = self.up_net1(e3)   # (B, 64*2, 32, 32)
         d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 32, 32)
         # d1 = self.res_net1(d1)
 
