@@ -106,17 +106,15 @@ class Generator(nn.Module):
         self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
 
         self.up_net1 = up(self.ngf * 4, self.ngf * 2)
-        self.up_net2 = up(self.ngf * 2, self.ngf * 2)
-        self.up_net3 = up(self.ngf * 6, self.ngf * 2)
-        self.up_net4 = up(self.ngf * 4, self.ngf * 1)
+        self.up_net2 = up(self.ngf * 4, self.ngf * 1)
+        self.up_net3 = up(self.ngf * 2, self.ngf * 2)
+        self.up_net4 = up(self.ngf * 2, self.ngf * 1)
 
-        self.max_pool = nn.MaxPool2d(4)
-
-        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 2, self.input_nc, 1, 1, 0), nn.Tanh())
+        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, x):
         # Encode
-        e1 = self.in_net1(x)   # (B, 64, 64, 64)
+        e1 = self.in_net1(x)   # (B, 64*1, 64, 64)
         e2 = self.in_net2(e1)  # (B, 64*2, 32, 32)
         e3 = self.in_net3(e2)  # (B, 64*4, 16, 16)
         # Attention
@@ -124,17 +122,14 @@ class Generator(nn.Module):
 
         # Decode
         d1 = self.up_net1(y)   # (B, 64*2, 32, 32)
+        d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 32, 32)
         # d1 = self.res_net1(d1)
 
-        d2 = self.up_net2(d1)  # (B, 64*2, 64, 64)
-        d2 = torch.cat([self.max_pool(e3), d2], dim=1)  # (B, 64*6, 64, 64)
+        d2 = self.up_net2(d1)  # (B, 64*1, 64, 64)
+        d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 64, 64)
 
         d3 = self.up_net3(d2)  # (B, 64*2, 64, 64)
-        d3 = torch.cat([self.max_pool(e2), d3], dim=1)  # (B, 64*4, 128, 128)
-
         d4 = self.up_net4(d3)  # (B, 64*1, 64, 64)
-        d4 = torch.cat([self.max_pool(e1), d4], dim=1)  # (B, 64*2, 256, 256)
-
         y4 = self.end_net(d4)
         return y4
 
