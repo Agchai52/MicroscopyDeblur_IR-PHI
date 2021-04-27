@@ -160,7 +160,7 @@ class Attention(nn.Module):
         beta = F.softmax(s, dim=-1)                      # (b, h*w, h*w)
         o = torch.matmul(beta, h)                        # (b, h*w, ch)
         o = o.permute(0, 2, 1).view(b, self.ch, height, width)
-        o = gamma * o + x
+        o = self.gamma * o + x
         return o
 
 
