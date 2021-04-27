@@ -80,7 +80,7 @@ def train(args):
     netG_S2B = BlurModel(args, device)
 
     print('===> Setting up loss functions')
-    criterion_L2 = nn.MSELoss(reduction="sum").to(device)
+    criterion_L2 = nn.MSELoss().to(device)
 
     counter = 0
     PSNR_average = []

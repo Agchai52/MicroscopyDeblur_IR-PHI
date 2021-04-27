@@ -139,7 +139,7 @@ class ROINet(nn.Module):
             up(self.ngf * 8, self.ngf * 4),    # (B, 32, 8, 8)
             up(self.ngf * 4, self.ngf * 2),    # (B, 16, 16, 16)
             up(self.ngf * 2, self.ngf * 1),    # (B, 8, 32, 32)
-            up(self.ngf * 1, self.ngf * 1),   # (B, 1, 64, 64)
+            up(self.ngf * 1, self.ngf * 1),    # (B, 1, 64, 64)
             nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0),    # (B, 1, 64, 64)
             nn.Tanh()
         )
