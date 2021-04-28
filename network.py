@@ -79,13 +79,15 @@ class Generator(nn.Module):
         def down(c_in, c_out, k=3, s=2, p=0, d=1):
             return nn.Sequential(
                 nn.ReflectionPad2d([0, 1, 0, 1]),
-                nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True)
+                nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True),
+                Channel_Att(c_out)
             )
 
         def up(c_in, c_out, k=2, s=2):
             return nn.Sequential(
                 nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s),
-                nn.SELU(inplace=True)
+                nn.SELU(inplace=True),
+                Channel_Att(c_out)
             )
 
         self.input_nc = args.input_nc
@@ -102,12 +104,10 @@ class Generator(nn.Module):
         self.in_net2 = down(self.ngf * 1, self.ngf * 2)
         self.in_net3 = down(self.ngf * 2, self.ngf * 4)
 
-        self.att_net = Attention(self.ngf * 4)  # (B, 16, 64, 64)
-
-        self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
+        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
+        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
 
         self.up_net1 = up(self.ngf * 4, self.ngf * 2)
         self.up_net2 = up(self.ngf * 2, self.ngf * 1)
@@ -117,9 +117,9 @@ class Generator(nn.Module):
     def forward(self, x):
         # Encode
         e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
-        e1 = self.res_net1(e1)
+        # e1 = self.att_net1(e1)
         e2 = self.in_net2(e1)  # (B, 64*2, 128, 128)
-        e2 = self.res_net2(e2)
+        # e2 = self.att_net2(e2)
         e3 = self.in_net3(e2)  # (B, 64*4, 64, 64)
         # Attention
         # y = self.att_net(e3)   # (B, 64*4, 64, 64)
@@ -127,11 +127,11 @@ class Generator(nn.Module):
         # Decode
         d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
         # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
-        d1 = self.res_net3(d1)
+        # d1 = self.res_net3(d1)
 
         d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
         # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
-        d2 = self.res_net4(d2)
+        # d2 = self.res_net4(d2)
 
         y = self.end_net(d2)
         return y
@@ -160,6 +160,25 @@ class Attention(nn.Module):
         o = o.permute(0, 2, 1).view(b, self.ch, height, width)
         o = self.gamma * o + x
         return o
+
+
+class Channel_Att(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(Channel_Att, self).__init__()
+        # global average pooling: feature --> point
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        # feature channel downscale and upscale --> channel weight
+        self.conv_du = nn.Sequential(
+                nn.Conv2d(channel, channel // reduction, 1, padding=0, bias=True),
+                nn.ReLU(inplace=True),
+                nn.Conv2d(channel // reduction, channel, 1, padding=0, bias=True),
+                nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        y = self.avg_pool(x)
+        y = self.conv_du(y)
+        return x * y
 
 
 class ResBlock(nn.Module):
