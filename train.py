@@ -89,7 +89,7 @@ def train(args):
             ###########################
             optimizer_G.zero_grad()
 
-            real_B = F.interpolate(real_B, (args.load_szie, args.load_size), mode="bilinear")
+            real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
             loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
