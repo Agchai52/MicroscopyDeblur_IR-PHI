@@ -81,6 +81,12 @@ def train(args):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)
 
+            threshold = -0.3
+            max_v = 1.0 * torch.ones_like(real_B)
+            min_v = -1.0 * torch.ones_like(real_B)
+            roi_B = torch.where(real_B <= threshold, min_v, max_v)
+            real_B = roi_B
+
             fake_S = netG(real_B)
             recov_B = netG_S2B(fake_S)
 
