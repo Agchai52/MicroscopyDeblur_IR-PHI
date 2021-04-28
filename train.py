@@ -144,7 +144,7 @@ def train(args):
                     max_v = 1.0 * torch.ones_like(real_B)
                     min_v = -1.0 * torch.ones_like(real_B)
                     roi_B = torch.where(real_B <= threshold, min_v, max_v)
-                    real_B = roi_B
+                    real_B = roi_B * real_B
 
                     pred_S = netG(real_B)
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)

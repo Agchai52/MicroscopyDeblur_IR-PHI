@@ -80,14 +80,14 @@ class Generator(nn.Module):
             return nn.Sequential(
                 nn.ReflectionPad2d([0, 1, 0, 1]),
                 nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True),
-                Channel_Att(c_out)
+                # Channel_Att(c_out)
             )
 
         def up(c_in, c_out, k=2, s=2):
             return nn.Sequential(
                 nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s),
                 nn.SELU(inplace=True),
-                Channel_Att(c_out)
+                # Channel_Att(c_out)
             )
 
         self.input_nc = args.input_nc
@@ -104,10 +104,10 @@ class Generator(nn.Module):
         self.in_net2 = down(self.ngf * 1, self.ngf * 2)
         self.in_net3 = down(self.ngf * 2, self.ngf * 4)
 
-        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
+        self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
+        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+        self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
+        self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
 
         self.up_net1 = up(self.ngf * 4, self.ngf * 2)
         self.up_net2 = up(self.ngf * 2, self.ngf * 1)
@@ -117,9 +117,9 @@ class Generator(nn.Module):
     def forward(self, x):
         # Encode
         e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
-        # e1 = self.att_net1(e1)
+        e1 = self.res_net1(e1)
         e2 = self.in_net2(e1)  # (B, 64*2, 128, 128)
-        # e2 = self.att_net2(e2)
+        e2 = self.res_net2(e2)
         e3 = self.in_net3(e2)  # (B, 64*4, 64, 64)
         # Attention
         # y = self.att_net(e3)   # (B, 64*4, 64, 64)
@@ -127,11 +127,11 @@ class Generator(nn.Module):
         # Decode
         d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
         # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
-        # d1 = self.res_net3(d1)
+        d1 = self.res_net3(d1)
 
         d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
         # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
-        # d2 = self.res_net4(d2)
+        d2 = self.res_net4(d2)
 
         y = self.end_net(d2)
         return y
