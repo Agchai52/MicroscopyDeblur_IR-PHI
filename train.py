@@ -83,7 +83,7 @@ def train(args):
 
             threshold = -0.4
             max_v = 1.0 * torch.ones_like(real_B)
-            min_v = -1.0 * torch.ones_like(real_B)
+            min_v = 0.0 * torch.ones_like(real_B)
             roi_B = torch.where(real_B <= threshold, min_v, max_v)
             real_B = roi_B
 
@@ -142,7 +142,7 @@ def train(args):
 
                     threshold = -0.4
                     max_v = 1.0 * torch.ones_like(real_B)
-                    min_v = -1.0 * torch.ones_like(real_B)
+                    min_v = 0.0 * torch.ones_like(real_B)
                     roi_B = torch.where(real_B <= threshold, min_v, max_v)
                     real_B = roi_B * real_B
 
