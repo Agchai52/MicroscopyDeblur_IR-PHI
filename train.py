@@ -96,6 +96,7 @@ def train(args):
             real_B, real_S = real_B.to(device), real_S.to(device)
 
             fake_S = netG(real_B)
+            fake_B = netG_S2B(real_S)
             recov_B = netG_S2B(fake_S)
             recov_S = netG(fake_B)
             ############################
