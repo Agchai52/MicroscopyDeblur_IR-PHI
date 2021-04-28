@@ -63,10 +63,9 @@ def test(args):
             real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             threshold = -0.4
-            max_v = 1.0 * torch.ones_like(real_B)
-            min_v = 0.0 * torch.ones_like(real_B)
-            roi_B = torch.where(real_B <= threshold, min_v, max_v)
-            real_B = roi_B * real_B
+            min_v = -1.0 * torch.ones_like(real_B)
+            roi_B = torch.where(real_B > threshold, real_B, min_v)
+            real_B = roi_B
 
             pred_S = netG(real_B)
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
@@ -122,10 +121,9 @@ def test_real(args):
             real_B = real_B.to(device)
 
             threshold = -0.4
-            max_v = 1.0 * torch.ones_like(real_B)
-            min_v = 0.0 * torch.ones_like(real_B)
-            roi_B = torch.where(real_B <= threshold, min_v, max_v)
-            real_B = roi_B * real_B
+            min_v = -1.0 * torch.ones_like(real_B)
+            roi_B = torch.where(real_B > threshold, real_B, min_v)
+            real_B = roi_B
 
             pred_S = netG(real_B)
             img_S = pred_S.detach().squeeze(0).cpu()
