@@ -137,7 +137,7 @@ class Generator(nn.Module):
         #
         # self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
 
-    def forward(self, x):
+    def forward(self, img):
         # # Encode
         # e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
         # # e1 = self.res_net1(e1)
