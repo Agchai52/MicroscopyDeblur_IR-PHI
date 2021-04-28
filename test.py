@@ -62,7 +62,7 @@ def test(args):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
-            threshold = -0.4
+            threshold = -0.8
             min_v = -1.0 * torch.ones_like(real_B)
             roi_B = torch.where(real_B > threshold, real_B, min_v)
             real_B = roi_B
@@ -120,7 +120,7 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
-            threshold = -0.4
+            threshold = -0.8
             min_v = -1.0 * torch.ones_like(real_B)
             roi_B = torch.where(real_B > threshold, real_B, min_v)
             real_B = roi_B
