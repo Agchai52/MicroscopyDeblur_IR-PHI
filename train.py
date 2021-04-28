@@ -37,26 +37,39 @@ def train(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
+    model_DS = Discriminator(args, device)
+    model_DS = nn.DataParallel(model_DS)
+
     print('===> Building models')
     netG = model_G.to(device)
     optimizer_G = optim.Adam(netG.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
     net_g_path = "checkpoint/netG"
 
+    netD_S = model_DS.to(device)
+    optimizer_D_S = optim.Adam(netD_S.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
+    net_d_s_path = "checkpoint/netD_S"
+
     if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         netG.apply(weights_init)
+        netD_S.apply(weights_init)
         pre_epoch = 0
     else:
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
-
         checkpointG = torch.load(model_path_G)
         netG.load_state_dict(checkpointG['model_state_dict'])
         optimizer_G.load_state_dict(checkpointG['optimizer_state_dict'])
 
+        model_path_D_S = find_latest_model(net_d_s_path)
+        checkpointDS = torch.load(model_path_D_S)
+        netD_S.load_state_dict(checkpointDS['model_state_dict'])
+        optimizer_D_S.load_state_dict(checkpointDS['optimizer_state_dict'])
+
         pre_epoch = checkpointG['epoch']
 
     netG.train()
+    netD_S.train()
     print(netG)
 
     # Gemometric Blur Model as Second Generator
@@ -65,6 +78,7 @@ def train(args):
     print('===> Setting up loss functions')
     criterion_L2 = nn.MSELoss().to(device)
     criterion_grad = GradientLoss(device=device).to(device)
+    criterion_GAN = GANLoss().to(device)
 
     counter = 0
     PSNR_average = []
@@ -83,6 +97,24 @@ def train(args):
 
             fake_S = netG(real_B)
             recov_B = netG_S2B(fake_S)
+            ############################
+            # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
+            ###########################
+            optimizer_D_S.zero_grad()
+
+            # train with fake
+            pred_fake_S = netD_S(fake_S.detach())
+            loss_d_s_fake = criterion_GAN(pred_fake_S, False)
+
+            # train with real
+            pred_real_S = netD_S(real_S)
+            loss_d_s_real = criterion_GAN(pred_real_S, True)
+
+            # combine d loss
+            loss_d_s = (loss_d_s_fake + loss_d_s_real)
+
+            loss_d_s.backward()
+            optimizer_D_S.step()
 
             ############################
             # (1) Update G network:
@@ -91,11 +123,15 @@ def train(args):
 
             # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
+            # S = G(B) should fake the discriminator S
+            pred_fake_S = netD_S(fake_S)
+            loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
+
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
             loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
             loss_recover = criterion_L2(recov_B, real_B) * args.LR_lambda
 
-            loss_g = loss_l2 + loss_grad + loss_recover
+            loss_g = loss_l2 + loss_grad + loss_recover + loss_g_gan_bs
 
             loss_g.backward()
             optimizer_G.step()

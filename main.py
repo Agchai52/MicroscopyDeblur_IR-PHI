@@ -54,7 +54,7 @@ if args.phase == 'train':
     if not os.path.exists(args.checkpoint_dir):
         os.makedirs(args.checkpoint_dir)
         os.makedirs("checkpoint/netG")
-        os.makedirs("checkpoint/netR")
+        os.makedirs("checkpoint/netD_S")
 
     if not os.path.exists(args.valid_dir):
         os.makedirs(args.valid_dir)
