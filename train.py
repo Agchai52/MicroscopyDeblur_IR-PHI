@@ -81,11 +81,6 @@ def train(args):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)
 
-            threshold = -0.8
-            min_v = -1.0 * torch.ones_like(real_B)
-            roi_B = torch.where(real_B > threshold, real_B, min_v)
-            real_B = roi_B
-
             fake_S = netG(real_B)
             recov_B = netG_S2B(fake_S)
 
@@ -138,11 +133,6 @@ def train(args):
                 for batch in test_data_loader:
                     real_B, real_S, img_name = batch[0], batch[1], batch[2]
                     real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
-
-                    threshold = -0.8
-                    min_v = -1.0 * torch.ones_like(real_B)
-                    roi_B = torch.where(real_B > threshold, real_B, min_v)
-                    real_B = roi_B
 
                     pred_S = netG(real_B)
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
