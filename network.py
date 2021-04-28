@@ -235,6 +235,32 @@ class ResBlock(nn.Module):
         return x2
 
 
+class ConvBlock(nn.Module):
+    def __init__(self, c_in, c_out, k_size=3, stride=1, pad=0):
+        super(ConvBlock, self).__init__()
+        self.c_in = c_in
+        self.c_out = c_out
+        if stride == 1:
+            self.model = nn.Sequential(
+                nn.ReflectionPad2d((1, 1, 1, 1)),
+                nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
+                          padding_mode='circular'),
+                nn.InstanceNorm2d(self.c_out),
+                nn.ReLU(inplace=True))
+        elif stride == 2:
+            self.model = nn.Sequential(
+                nn.ReflectionPad2d((0, 1, 0, 1)),
+                nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
+                          padding_mode='circular'),
+                nn.InstanceNorm2d(self.c_out),
+                nn.ReLU(inplace=True))
+        else:
+            raise Exception("stride size = 1 or 2")
+
+    def forward(self, maps):
+        return self.model(maps)
+
+
 class GANLoss(nn.Module):
     def __init__(self, target_real_label=1.0, target_fake_label=0.0):
         super(GANLoss, self).__init__()
