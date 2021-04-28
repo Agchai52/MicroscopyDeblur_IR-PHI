@@ -117,6 +117,7 @@ def test_real(args):
             real_B = real_B.to(device)
 
             pred_S = netG(real_B)
+            pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
