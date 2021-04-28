@@ -96,45 +96,81 @@ class Generator(nn.Module):
         self.loss = nn.MSELoss()
         self.load_size = args.load_size
 
-        self.in_net1 = nn.Sequential(
-            nn.Conv2d(self.input_nc, self.ngf, 3, 1, 1),
-            nn.SELU(inplace=True),
-        )
+        self.e1 = nn.Sequential(ConvBlock(self.input_nc, self.ngf * 1),
+                                ConvBlock(self.ngf * 1, self.ngf * 1))  # (B, 64, H, W)
+        self.e2 = nn.Sequential(nn.MaxPool2d(2, stride=2),
+                                ConvBlock(self.ngf * 1, self.ngf * 2),
+                                ConvBlock(self.ngf * 2, self.ngf * 2))  # (B, 128, H/2, W/2)
+        self.e3 = nn.Sequential(nn.MaxPool2d(2, stride=2),
+                                ConvBlock(self.ngf * 2, self.ngf * 4),
+                                ConvBlock(self.ngf * 4, self.ngf * 4),
+                                ConvBlock(self.ngf * 4, self.ngf * 4),  # (B, 256, H/4, W/4)
+                                nn.ConvTranspose2d(self.ngf * 4, self.ngf * 2, kernel_size=3, stride=2, padding=1,
+                                                   output_padding=1))  # (B, 128, H/2, W/2)
 
-        self.in_net2 = down(self.ngf * 1, self.ngf * 2)
-        self.in_net3 = down(self.ngf * 2, self.ngf * 4)
+        # Decoder
+        self.d1 = nn.Sequential(ConvBlock(self.ngf * 4, self.ngf * 2),
+                                ConvBlock(self.ngf * 2, self.ngf * 2),  # (B, 128, H/2, W/2)
+                                nn.ConvTranspose2d(self.ngf * 2, self.ngf * 1, kernel_size=3, stride=2, padding=1,
+                                                   output_padding=1))  # (B, 64, H, W)
+        self.d2 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 1),
+                                nn.ReflectionPad2d((1, 1, 1, 1)),
+                                nn.Conv2d(self.ngf * 1, self.input_nc, kernel_size=3, stride=1, padding=0,
+                                          padding_mode='circular'),  # (B, 1, H, W)
+                                nn.Tanh())
 
-        self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
-
-        self.up_net1 = up(self.ngf * 4, self.ngf * 2)
-        self.up_net2 = up(self.ngf * 2, self.ngf * 1)
-
-        self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
+        # self.in_net1 = nn.Sequential(
+        #     nn.Conv2d(self.input_nc, self.ngf, 3, 1, 1),
+        #     nn.SELU(inplace=True),
+        # )
+        #
+        # self.in_net2 = down(self.ngf * 1, self.ngf * 2)
+        # self.in_net3 = down(self.ngf * 2, self.ngf * 4)
+        #
+        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
+        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
+        #
+        # self.up_net1 = up(self.ngf * 4, self.ngf * 2)
+        # self.up_net2 = up(self.ngf * 2, self.ngf * 1)
+        #
+        # self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, x):
-        # Encode
-        e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
-        # e1 = self.res_net1(e1)
-        e2 = self.in_net2(e1)  # (B, 64*2, 128, 128)
-        # e2 = self.res_net2(e2)
-        e3 = self.in_net3(e2)  # (B, 64*4, 64, 64)
-        # Attention
-        # y = self.att_net(e3)   # (B, 64*4, 64, 64)
+        # # Encode
+        # e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
+        # # e1 = self.res_net1(e1)
+        # e2 = self.in_net2(e1)  # (B, 64*2, 128, 128)
+        # # e2 = self.res_net2(e2)
+        # e3 = self.in_net3(e2)  # (B, 64*4, 64, 64)
+        # # Attention
+        # # y = self.att_net(e3)   # (B, 64*4, 64, 64)
+        #
+        # # Decode
+        # d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
+        # # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
+        # # d1 = self.res_net3(d1)
+        #
+        # d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
+        # # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
+        # # d2 = self.res_net4(d2)
+        #
+        # y = self.end_net(d2)
 
-        # Decode
-        d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
-        # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
-        # d1 = self.res_net3(d1)
+        # Encoder
+        e_layer1 = self.e1(img)
+        e_layer2 = self.e2(e_layer1)
+        e_layer3 = self.e3(e_layer2)
 
-        d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
-        # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
-        # d2 = self.res_net4(d2)
+        # Decoder
+        e_layer3 = torch.cat([e_layer2, e_layer3], 1)
+        d_layer1 = self.d1(e_layer3)
 
-        y = self.end_net(d2)
-        return y
+        d_layer1 = torch.cat([e_layer1, d_layer1], 1)
+        d_layer2 = self.d2(d_layer1)
+
+        return d_layer2
 
 
 class Attention(nn.Module):
