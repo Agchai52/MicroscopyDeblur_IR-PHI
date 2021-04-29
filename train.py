@@ -138,6 +138,14 @@ def train(args):
             # pred_fake_S = netD_S(fake_S)
             # loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
+            print("fake_S:")
+            print(fake_S[0].shape, fake_S[1].shape, fake_S[2].shape)
+
+            print("real_S:")
+            print(real_S0.shape, real_S1.shape, real_S2.shape)
+
+            exit()
+
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
                        criterion_L2(fake_S[2], real_S2)) * args.L2_lambda / 3
