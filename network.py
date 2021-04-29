@@ -108,10 +108,12 @@ class Generator(nn.Module):
         self.load_size = args.load_size
 
         self.e1 = nn.Sequential(ConvBlock(self.input_nc, self.ngf * 1),
-                                ConvBlock(self.ngf * 1, self.ngf * 1))  # (B, 64, H, W)
+                                # ConvBlock(self.ngf * 1, self.ngf * 1)
+                                )  # (B, 64, H, W)
         self.e2 = nn.Sequential(nn.MaxPool2d(2, stride=2),
-                                ConvBlock(self.ngf * 1, self.ngf * 2),
-                                ConvBlock(self.ngf * 2, self.ngf * 2))  # (B, 128, H/2, W/2)
+                               ConvBlock(self.ngf * 1, self.ngf * 2),
+                               # ConvBlock(self.ngf * 2, self.ngf * 2)
+                                )  # (B, 128, H/2, W/2)
         self.e3 = nn.Sequential(nn.MaxPool2d(2, stride=2),
                                 ConvBlock(self.ngf * 2, self.ngf * 4),
                                 ConvBlock(self.ngf * 4, self.ngf * 4),
@@ -120,19 +122,11 @@ class Generator(nn.Module):
                                                    output_padding=1))  # (B, 128, H/2, W/2)
 
         # Decoder
-        self.d1 = nn.Sequential(ConvBlock(self.ngf * 4, self.ngf * 2),
+        self.d1 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 2),
                                 ConvBlock(self.ngf * 2, self.ngf * 2),  # (B, 128, H/2, W/2)
                                 nn.ConvTranspose2d(self.ngf * 2, self.ngf * 1, kernel_size=3, stride=2, padding=1,
                                                    output_padding=1))  # (B, 64, H, W)
-        # self.d2 = nn.Sequential(ConvBlock(self.ngf * 1, self.ngf * 1),
-        #                         ConvBlock(self.ngf * 1, self.ngf * 1),  # (B, 128, H/2, W/2)
-        #                         nn.ConvTranspose2d(self.ngf * 1, self.ngf * 1, kernel_size=3, stride=2, padding=1,
-        #                                            output_padding=1))  # (B, 64, H, W)
-        # self.d3 = nn.Sequential(ConvBlock(self.ngf * 1, self.ngf * 1),
-        #                         ConvBlock(self.ngf * 1, self.ngf * 1),  # (B, 128, H/2, W/2)
-        #                         nn.ConvTranspose2d(self.ngf * 1, self.ngf * 1, kernel_size=3, stride=2, padding=1,
-        #                                            output_padding=1))  # (B, 64, H, W)
-        self.d4 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 1),
+        self.d2 = nn.Sequential(ConvBlock(self.ngf * 1, self.ngf * 1),
                                 nn.ReflectionPad2d((1, 1, 1, 1)),
                                 nn.Conv2d(self.ngf * 1, self.input_nc, kernel_size=3, stride=1, padding=0,
                                           padding_mode='circular'),  # (B, 1, H, W)
@@ -146,10 +140,10 @@ class Generator(nn.Module):
         # self.in_net2 = down(self.ngf * 1, self.ngf * 2)
         # self.in_net3 = down(self.ngf * 2, self.ngf * 4)
         #
-        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
+        self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
+        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+        self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
+        self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
         #
         # self.up_net1 = up(self.ngf * 4, self.ngf * 2)
         # self.up_net2 = up(self.ngf * 2, self.ngf * 1)
@@ -179,19 +173,20 @@ class Generator(nn.Module):
 
         # Encoder
         e_layer1 = self.e1(img)
+        e_layer1 = self.res_net1(e_layer1)
         e_layer2 = self.e2(e_layer1)
+        e_layer2 = self.res_net2(e_layer2)
         e_layer3 = self.e3(e_layer2)
+        e_layer3 = self.res_net3(e_layer3)
 
         # Decoder
-        e_layer3 = torch.cat([e_layer2, e_layer3], 1)
+        # e_layer3 = torch.cat([e_layer2, e_layer3], 1)
         d_layer1 = self.d1(e_layer3)
+        d_layer1 = self.res_net4(d_layer1)
 
-        d_layer1 = torch.cat([e_layer1, d_layer1], 1)
-        # d_layer2 = self.d2(d_layer1)
-        #
-        # d_layer3 = self.d3(d_layer2)
-        d_layer4 = self.d4(d_layer1)
-        return d_layer4
+        # d_layer1 = torch.cat([e_layer1, d_layer1], 1)
+        d_layer2 = self.d2(d_layer1)
+        return d_layer2
 
     def __call__(self, x):
         b, c, h, w = x.shape
