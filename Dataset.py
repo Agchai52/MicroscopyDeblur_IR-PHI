@@ -33,8 +33,8 @@ class DeblurDataset(Dataset):
         # Downsample the blurry image to (64, 64)
         img_A = img_A.resize((self.args.fine_size, self.args.fine_size), resample=Image.BILINEAR)
 
-        if self.is_train:
-            img_B = img_B.resize((self.args.fine_size, self.args.fine_size), resample=Image.BILINEAR)
+        # if self.is_train:
+        #     img_B = img_B.resize((self.args.fine_size, self.args.fine_size), resample=Image.BILINEAR)
 
         if np.random.random() < 0.5:
             img_A = img_A.transpose(Image.FLIP_LEFT_RIGHT)

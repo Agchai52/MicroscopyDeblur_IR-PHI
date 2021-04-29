@@ -72,10 +72,12 @@ class BlurModel(nn.Module):
         return blur_img
 
     def __call__(self, x):
-        x3, x2, x1 = x
-        x3 = self.forward(x3)
-        x2 = self.forward(x2)
-        x1 = self.forward(x1)
+        b, c, h, w = x.shape
+        x1 = self.forward(x)
+        x1 = F.interpolate(x1, (h // 2, w // 2), mode="bilinear")
+        x2 = self.forward(x1)
+        x2 = F.interpolate(x2, (h // 4, w // 4), mode="bilinear")
+        x3 = self.forward(x2)
         return list([x3, x2, x1])
 
 
@@ -196,7 +198,7 @@ class Generator(nn.Module):
         x2 = self.forward(x1)
         x2 = F.interpolate(x2, (h * 4, w * 4), mode="bilinear")
         x3 = self.forward(x2)
-        return list([x3, x2, x1])
+        return list([x1, x2, x3])
 
 
 class Discriminator(nn.Module):

@@ -100,12 +100,12 @@ def train(args):
 
             # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
 
-            recov_S = netG(fake_B[2])
-            recov_B = netG_S2B(fake_S)
+            recov_S = netG(fake_B[0])
+            recov_B = netG_S2B(fake_S[0])
 
             real_S2 = resl_S  # (64, 64)
             real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
-            real_S0 = F.interpolate(real_S, (args.fine_size * 4, args.fine_size * 4), mode="bilinear")
+            real_S0 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
 
             ############################
             # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
@@ -143,9 +143,9 @@ def train(args):
             loss_grad = (criterion_grad(fake_S[0], real_S0) +
                          criterion_grad(fake_S[1], real_S1) +
                          criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3
-            loss_recover = (criterion_L2(recov_B[2], real_B) + criterion_L2(recov_S[0], real_S0) +
-                            criterion_L2(recov_B[2], real_B) + criterion_L2(recov_S[1], real_S1) +
-                            criterion_L2(recov_B[2], real_B) + criterion_L2(recov_S[2], real_S2)) * args.L2_lambda / 3
+            loss_recover = (criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[0], real_S0) +
+                            criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[1], real_S1) +
+                            criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[2], real_S2)) * args.L2_lambda / 3
             # loss_recover = criterion_L2(recov_B, real_B) * args.LR_lambda
 
             loss_g = loss_l2 + loss_grad + loss_recover  # + loss_g_gan_bs
@@ -190,7 +190,7 @@ def train(args):
                     real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
-                    pred_S = pred_S[0]
+                    pred_S = pred_S[-1]
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
