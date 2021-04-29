@@ -122,11 +122,11 @@ class Generator(nn.Module):
                                                    output_padding=1))  # (B, 128, H/2, W/2)
 
         # Decoder
-        self.d1 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 2),
+        self.d1 = nn.Sequential(ConvBlock(self.ngf * 4, self.ngf * 2),
                                 ConvBlock(self.ngf * 2, self.ngf * 2),  # (B, 128, H/2, W/2)
                                 nn.ConvTranspose2d(self.ngf * 2, self.ngf * 1, kernel_size=3, stride=2, padding=1,
                                                    output_padding=1))  # (B, 64, H, W)
-        self.d2 = nn.Sequential(ConvBlock(self.ngf * 1, self.ngf * 1),
+        self.d2 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 1),
                                 nn.ReflectionPad2d((1, 1, 1, 1)),
                                 nn.Conv2d(self.ngf * 1, self.input_nc, kernel_size=3, stride=1, padding=0,
                                           padding_mode='circular'),  # (B, 1, H, W)
@@ -180,11 +180,11 @@ class Generator(nn.Module):
         e_layer3 = self.res_net3(e_layer3)
 
         # Decoder
-        # e_layer3 = torch.cat([e_layer2, e_layer3], 1)
+        e_layer3 = torch.cat([e_layer2, e_layer3], 1)
         d_layer1 = self.d1(e_layer3)
         d_layer1 = self.res_net4(d_layer1)
 
-        # d_layer1 = torch.cat([e_layer1, d_layer1], 1)
+        d_layer1 = torch.cat([e_layer1, d_layer1], 1)
         d_layer2 = self.d2(d_layer1)
         return d_layer2
 
