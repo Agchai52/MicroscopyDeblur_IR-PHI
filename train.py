@@ -95,17 +95,18 @@ def train(args):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
             real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
-            fake_S = netG(real_B)
-            fake_B = netG_S2B(real_S)
+            fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
+            fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
 
             # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             recov_S = netG(fake_B[0])
-            recov_B = netG_S2B(fake_S[2])
+            recov_B = netG_S2B(fake_S[-1])
 
-            real_S2 = real_S  # (64, 64)
+            real_S0 = F.interpolate(real_S, (args.fine_size * 1, args.fine_size * 1), mode="bilinear")
             real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
-            real_S0 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
+            real_S2 = real_S  # (256, 256)
+
 
             ############################
             # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
