@@ -58,6 +58,8 @@ if args.phase == 'train':
 
     if not os.path.exists(args.valid_dir):
         os.makedirs(args.valid_dir)
+    if not os.path.exists(args.test_dir):
+        os.makedirs(args.test_dir)
     train.train(args)
     test.test(args)
     test.test_real(args)
