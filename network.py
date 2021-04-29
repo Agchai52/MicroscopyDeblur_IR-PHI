@@ -108,11 +108,11 @@ class Generator(nn.Module):
         self.load_size = args.load_size
 
         self.e1 = nn.Sequential(ConvBlock(self.input_nc, self.ngf * 1),
-                                # ConvBlock(self.ngf * 1, self.ngf * 1)
+                                ConvBlock(self.ngf * 1, self.ngf * 1)
                                 )  # (B, 64, H, W)
         self.e2 = nn.Sequential(nn.MaxPool2d(2, stride=2),
                                ConvBlock(self.ngf * 1, self.ngf * 2),
-                               # ConvBlock(self.ngf * 2, self.ngf * 2)
+                               ConvBlock(self.ngf * 2, self.ngf * 2)
                                 )  # (B, 128, H/2, W/2)
         self.e3 = nn.Sequential(nn.MaxPool2d(2, stride=2),
                                 ConvBlock(self.ngf * 2, self.ngf * 4),
@@ -140,10 +140,10 @@ class Generator(nn.Module):
         # self.in_net2 = down(self.ngf * 1, self.ngf * 2)
         # self.in_net3 = down(self.ngf * 2, self.ngf * 4)
         #
-        self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
+        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
+        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
+        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
         #
         # self.up_net1 = up(self.ngf * 4, self.ngf * 2)
         # self.up_net2 = up(self.ngf * 2, self.ngf * 1)
@@ -151,38 +151,14 @@ class Generator(nn.Module):
         # self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, img):
-        # # Encode
-        # e1 = self.in_net1(x)   # (B, 64*1, 256, 256)
-        # # e1 = self.res_net1(e1)
-        # e2 = self.in_net2(e1)  # (B, 64*2, 128, 128)
-        # # e2 = self.res_net2(e2)
-        # e3 = self.in_net3(e2)  # (B, 64*4, 64, 64)
-        # # Attention
-        # # y = self.att_net(e3)   # (B, 64*4, 64, 64)
-        #
-        # # Decode
-        # d1 = self.up_net1(e3)   # (B, 64*2, 128, 128)
-        # # d1 = torch.cat([e2, d1], dim=1)  # (B, 64*4, 128, 128)
-        # # d1 = self.res_net3(d1)
-        #
-        # d2 = self.up_net2(d1)  # (B, 64*1, 256, 256)
-        # # d2 = torch.cat([e1, d2], dim=1)  # (B, 64*2, 256, 256)
-        # # d2 = self.res_net4(d2)
-        #
-        # y = self.end_net(d2)
-
         # Encoder
         e_layer1 = self.e1(img)
-        e_layer1 = self.res_net1(e_layer1)
         e_layer2 = self.e2(e_layer1)
-        e_layer2 = self.res_net2(e_layer2)
         e_layer3 = self.e3(e_layer2)
-        e_layer3 = self.res_net3(e_layer3)
 
         # Decoder
         e_layer3 = torch.cat([e_layer2, e_layer3], 1)
         d_layer1 = self.d1(e_layer3)
-        d_layer1 = self.res_net4(d_layer1)
 
         d_layer1 = torch.cat([e_layer1, d_layer1], 1)
         d_layer2 = self.d2(d_layer1)
@@ -318,14 +294,18 @@ class ConvBlock(nn.Module):
                 nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
                           padding_mode='circular'),
                 nn.InstanceNorm2d(self.c_out),
-                nn.ReLU(inplace=True))
+                nn.ReLU(inplace=True),
+                Channel_Att(self.c_out),
+            )
         elif stride == 2:
             self.model = nn.Sequential(
                 nn.ReflectionPad2d((0, 1, 0, 1)),
                 nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
                           padding_mode='circular'),
                 nn.InstanceNorm2d(self.c_out),
-                nn.ReLU(inplace=True))
+                nn.ReLU(inplace=True),
+                Channel_Att(self.c_out),
+            )
         else:
             raise Exception("stride size = 1 or 2")
 
