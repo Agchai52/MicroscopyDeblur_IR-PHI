@@ -105,21 +105,21 @@ def train(args):
             ############################
             # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
             ###########################
-            optimizer_D_S.zero_grad()
-
-            # train with fake
-            pred_fake_S = netD_S(fake_S.detach())
-            loss_d_s_fake = criterion_GAN(pred_fake_S, False)
-
-            # train with real
-            pred_real_S = netD_S(real_S)
-            loss_d_s_real = criterion_GAN(pred_real_S, True)
-
-            # combine d loss
-            loss_d_s = (loss_d_s_fake + loss_d_s_real)
-
-            loss_d_s.backward()
-            optimizer_D_S.step()
+            # optimizer_D_S.zero_grad()
+            #
+            # # train with fake
+            # pred_fake_S = netD_S(fake_S.detach())
+            # loss_d_s_fake = criterion_GAN(pred_fake_S, False)
+            #
+            # # train with real
+            # pred_real_S = netD_S(real_S)
+            # loss_d_s_real = criterion_GAN(pred_real_S, True)
+            #
+            # # combine d loss
+            # loss_d_s = (loss_d_s_fake + loss_d_s_real)
+            #
+            # loss_d_s.backward()
+            # optimizer_D_S.step()
 
             ############################
             # (1) Update G network:
@@ -130,15 +130,15 @@ def train(args):
 
 
             # S = G(B) should fake the discriminator S
-            pred_fake_S = netD_S(fake_S)
-            loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
+            # pred_fake_S = netD_S(fake_S)
+            # loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
             loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
             loss_recover = (criterion_L2(recov_B, real_B) + criterion_L2(recov_S, real_S)) * args.L2_lambda
             # loss_recover = criterion_L2(recov_B, real_B) * args.LR_lambda
 
-            loss_g = loss_l2 + loss_grad + loss_recover + loss_g_gan_bs
+            loss_g = loss_l2 + loss_grad + loss_recover # + loss_g_gan_bs
 
             loss_g.backward()
             optimizer_G.step()
