@@ -33,7 +33,7 @@ def Gaussian_2D(m=0, sigma=1.):
     return Gaussian
 
 
-def generate_bean(bean_size=10, sigma=0.2, M=50, is_plot=False):
+def generate_bean(bean_size=10, sigma=0.08, M=50, is_plot=False):
     """
     :param bean_size: bean_size
     :param sigma: std
@@ -135,7 +135,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
     background = np.zeros((image_size, image_size))
 
     for bean_loc in bean_locs:
-        bean_size = np.int(bean_size * np.random.uniform(low=0.8, high=1.2))
+        # bean_size = np.int(bean_size * np.random.uniform(low=0.8, high=1.2))
         if bean_size % 2 != 0:
             bean_size += 1
         bean_loc_x, bean_loc_y = bean_loc
@@ -167,9 +167,13 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
         background[up:down, left:right] += bean
 
     if is_plot:
-        cv2.imwrite("sample_img.png", background)
-        plt.figure()
+        # cv2.imwrite("sample_img.png", background)
+        plt.figure(1)
         plt.imshow(background, cmap='gray', vmin=0, vmax=255)
+
+        plt.figure(2)
+        plt.imshow(background, cmap=plt.get_cmap("jet"))
+        plt.colorbar()
         plt.show()
         exit()
     return background, len(bean_locs)
@@ -207,7 +211,7 @@ def kernel_fit(loc):
     :return: z
     """
     x, y = loc
-    scale = 50  # 50
+    scale = 25  # 50
     sigma = 160.5586
     x, y = scale * x, scale * y
     z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
@@ -276,12 +280,18 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
             # cv2.imwrite("blurry_sample.png", blurry)
             # cv2.imwrite("blurry_noisy_sample.png", blurry_noisy)
 
+            # plt.figure()
+            # plt.imshow(sharp, cmap='gray', vmin=0, vmax=255)
+            # plt.figure()
+            # plt.imshow(blurry, cmap='gray', vmin=0, vmax=255)
+            # plt.figure()
+            # plt.imshow(blurry_noisy, cmap='gray', vmin=0, vmax=255)
             plt.figure()
-            plt.imshow(sharp, cmap='gray', vmin=0, vmax=255)
+            plt.imshow(sharp, cmap=plt.get_cmap("jet"))
+            plt.colorbar()
             plt.figure()
-            plt.imshow(blurry, cmap='gray', vmin=0, vmax=255)
-            plt.figure()
-            plt.imshow(blurry_noisy, cmap='gray', vmin=0, vmax=255)
+            plt.imshow(blurry, cmap=plt.get_cmap("jet"))
+            plt.colorbar()
             plt.show()
             exit()
     f_original.close()
