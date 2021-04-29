@@ -101,7 +101,7 @@ def train(args):
             # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             recov_S = netG(fake_B[0])
-            recov_B = netG_S2B(fake_S[0])
+            recov_B = netG_S2B(fake_S[2])
 
             real_S2 = resl_S  # (64, 64)
             real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
