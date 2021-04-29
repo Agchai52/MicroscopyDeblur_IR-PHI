@@ -98,7 +98,7 @@ def train(args):
             fake_S = netG(real_B)
             fake_B = netG_S2B(real_S)
 
-            fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
+            # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             recov_B = netG_S2B(fake_S)
             recov_S = netG(fake_B)
@@ -126,7 +126,7 @@ def train(args):
             ###########################
             optimizer_G.zero_grad()
 
-            real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
+            # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
 
             # S = G(B) should fake the discriminator S
@@ -180,7 +180,7 @@ def train(args):
                     real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
-                    # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
+                    pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
