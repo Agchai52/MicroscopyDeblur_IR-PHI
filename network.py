@@ -196,10 +196,10 @@ class Generator(nn.Module):
     def __call__(self, x):
         b, c, h, w = x.shape
         x1 = self.forward(x)
-        x1 = F.interpolate(x1, (h * 2, w * 2), mode="bilinear")
-        x2 = self.forward(x1)
-        x2 = F.interpolate(x2, (h * 4, w * 4), mode="bilinear")
-        x3 = self.forward(x2)
+        y1 = F.interpolate(x1, (h * 2, w * 2), mode="bilinear")
+        x2 = self.forward(y1)
+        y2 = F.interpolate(x2, (h * 4, w * 4), mode="bilinear")
+        x3 = self.forward(y2)
         return list([x1, x2, x3])
 
 
