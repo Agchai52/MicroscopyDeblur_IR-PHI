@@ -121,7 +121,7 @@ class Generator(nn.Module):
         #                         ConvBlock(self.ngf * 1, self.ngf * 1),  # (B, 128, H/2, W/2)
         #                         nn.ConvTranspose2d(self.ngf * 1, self.ngf * 1, kernel_size=3, stride=2, padding=1,
         #                                            output_padding=1))  # (B, 64, H, W)
-        self.d4 = nn.Sequential(ConvBlock(self.ngf * 4, self.ngf * 1),
+        self.d4 = nn.Sequential(ConvBlock(self.ngf * 2, self.ngf * 1),
                                 nn.ReflectionPad2d((1, 1, 1, 1)),
                                 nn.Conv2d(self.ngf * 1, self.input_nc, kernel_size=3, stride=1, padding=0,
                                           padding_mode='circular'),  # (B, 1, H, W)
