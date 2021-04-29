@@ -59,6 +59,8 @@ if args.phase == 'train':
     if not os.path.exists(args.valid_dir):
         os.makedirs(args.valid_dir)
     train.train(args)
+    test.test(args)
+    test.test_real(args)
 
 elif args.phase == 'test':
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
