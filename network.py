@@ -172,10 +172,10 @@ class Generator(nn.Module):
         e_layer3 = self.e3(e_layer2)
 
         # Decoder
-        # e_layer3 = torch.cat([e_layer2, e_layer3], 1)
+        e_layer3 = torch.cat([e_layer2, e_layer3], 1)
         d_layer1 = self.d1(e_layer3)
 
-        # d_layer1 = torch.cat([e_layer1, d_layer1], 1)
+        d_layer1 = torch.cat([e_layer1, d_layer1], 1)
         # d_layer2 = self.d2(d_layer1)
         #
         # d_layer3 = self.d3(d_layer2)
