@@ -192,13 +192,18 @@ class Discriminator(nn.Module):
 
     def forward(self, img):
         b, c, h, w = img.shape
-        feature_maps = self.d_1(img).view(b, c, -1)  # (b, c, h/16 * w/16)
+        feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
-        print(feature_maps.shape)
-        exit()
+
         scores = self.fc(feature_maps)  # (b, classes)
         scores = F.normalize(scores, dim=1, p=1)
+
         probability = self.fc2(scores)  # (b, 1)
+        print(feature_maps.shape)
+        print(scores.shape)
+        print(probability.shape)
+
+        exit()
         return probability.unsqueeze(1), scores.unsqueeze(1)  # (b, 1, 1) (b, 1, classes)
 
 
