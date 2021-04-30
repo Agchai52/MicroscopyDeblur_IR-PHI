@@ -180,45 +180,26 @@ class Discriminator(nn.Module):
         self.input_nc = args.input_nc
         self.ndf = args.ndf
         self.device = device
+        self.classes = args.classes
         self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
                                  ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/4, W/4)
                                  ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/8, W/8)
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
-                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
-                                 )                                                  # (B, 1, H/16, W/16)
-
-        self.d_2 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/4, W/4)
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/8, W/8)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/16, W/16)
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/32, W/32)
-                                 nn.ReflectionPad2d((1, 1, 1, 1)),
-                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
-                                 )                                                  # (B, 1, H/32, W/32)
-
-        self.d_3 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/8, W/8)
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/16, W/16)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/32, W/32)
-                                 nn.ReflectionPad2d((1, 1, 1, 1)),
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/32, W/32)
-                                 nn.ReflectionPad2d((1, 1, 1, 1)),
-                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
-                                 )                                                  # (B, 1, H/32, W/32)
+                                 )
+        self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
+                                 nn.Sigmoid())
+        self.fc2 = nn.Linear(self.classes, 1)
 
     def forward(self, img):
-        def random_crop(img, crop_shape):
-            b, _, h, w = img.shape
-            h1 = int(np.ceil(np.random.uniform(1e-2, h - crop_shape[0])))
-            w1 = int(np.ceil(np.random.uniform(1e-2, w - crop_shape[1])))
-            crop = img[:, :, h1:h1+crop_shape[0], w1:w1+crop_shape[1]]
-            return crop
-
-        b, _, h, w = img.shape
-        out1 = self.d_1(img)
-        img = random_crop(img, (h // 2, w // 2))
-        out2 = self.d_2(img)
-        img = random_crop(img, (h // 4, w // 4))
-        out3 = self.d_3(img)
-        return out1, out2, out3
+        b, c, h, w = img
+        feature_maps = self.d_1(img).view(b, c, -1)
+        feature_maps = torch.mean(feature_maps, dim=-1)
+        print(feature_maps.shape)
+        exit()
+        scores = self.fc(feature_maps)
+        scores = F.normalize(scores, dim=1, p=1)
+        probability = self.fc2(scores)
+        return probability, scores
 
 
 class Attention(nn.Module):
@@ -329,12 +310,8 @@ class GANLoss(nn.Module):
         return target_tensor.expand_as(image)
 
     def __call__(self, img, target_is_real):
-        img1, img2, img3 = img
-        target_tensor1 = self.get_target_tensor(img1, target_is_real)
-        target_tensor2 = self.get_target_tensor(img2, target_is_real)
-        target_tensor3 = self.get_target_tensor(img3, target_is_real)
-
-        loss = (self.loss(img1, target_tensor1) + self.loss(img2, target_tensor2) + self.loss(img3, target_tensor3)) / 3
+        target_tensor = self.get_target_tensor(img, target_is_real)
+        loss = self.loss(img, target_tensor)
         return loss
 
 

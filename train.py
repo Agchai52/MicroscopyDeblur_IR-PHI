@@ -49,7 +49,7 @@ def train(args):
     optimizer_D_S = optim.Adam(netD_S.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
     net_d_s_path = "checkpoint/netD_S"
 
-    if not find_latest_model(net_g_path):
+    if not find_latest_model(net_g_path) or not find_latest_model(net_d_s_path):
         print(" [!] Load failed...")
         netG.apply(weights_init)
         netD_S.apply(weights_init)
@@ -76,6 +76,7 @@ def train(args):
     netG_S2B = BlurModel(args, device)
 
     print('===> Setting up loss functions')
+    criterion_L1 = nn.L1Loss().to(device)
     criterion_L2 = nn.MSELoss().to(device)
     criterion_grad = GradientLoss(device=device).to(device)
     criterion_GAN = GANLoss().to(device)
@@ -92,15 +93,15 @@ def train(args):
     print('Start from epoch: ', pre_epoch)
     for epoch in range(pre_epoch, args.epoch):
         for iteration, batch in enumerate(train_data_loader, 1):
-            real_B, real_S, img_name = batch[0], batch[1], batch[2]
-            real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
+            real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
+            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
             fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
-            fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
+            # fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
 
             # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
 
-            recov_S = netG(fake_B[0])
+            # recov_S = netG(fake_B[0])
             recov_B = netG_S2B(fake_S[-1])
 
             real_S0 = F.interpolate(real_S, (args.fine_size * 1, args.fine_size * 1), mode="bilinear")
@@ -111,21 +112,22 @@ def train(args):
             ############################
             # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
             ###########################
-            # optimizer_D_S.zero_grad()
-            #
-            # # train with fake
-            # pred_fake_S = netD_S(fake_S.detach())
-            # loss_d_s_fake = criterion_GAN(pred_fake_S, False)
-            #
-            # # train with real
-            # pred_real_S = netD_S(real_S)
-            # loss_d_s_real = criterion_GAN(pred_real_S, True)
-            #
-            # # combine d loss
-            # loss_d_s = (loss_d_s_fake + loss_d_s_real)
-            #
-            # loss_d_s.backward()
-            # optimizer_D_S.step()
+            optimizer_D_S.zero_grad()
+
+            # train with fake
+            pred_fake_S, _ = netD_S(fake_S.detach())
+            loss_d_s_fake = criterion_GAN(pred_fake_S, False)
+
+            # train with real
+            pred_real_S, pred_label = netD_S(real_S)
+            loss_d_s_real = criterion_GAN(pred_real_S, True)
+
+            # combine d loss
+            loss_score = criterion_L1(label, pred_label)
+            loss_d_s = (loss_d_s_fake + loss_d_s_real) + loss_score
+
+            loss_d_s.backward()
+            optimizer_D_S.step()
 
             ############################
             # (1) Update G network:
@@ -188,19 +190,26 @@ def train(args):
             all_ssim = []
             with torch.no_grad():
                 for batch in test_data_loader:
-                    real_B, real_S, img_name = batch[0], batch[1], batch[2]
-                    real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
+                    real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
+                    real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)
+                    # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
                     pred_S = pred_S[-1]
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
+
+                    _, pred_label = netD_S(pred_S)
+                    _, act_num = torch.topk(label, k=1)
+                    _, pre_num = torch.topk(pred_label, k=1)
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
                     if img_name[0][-2:] == '01':
                         img_S = pred_S.detach().squeeze(0).cpu()
                         save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
-                        print('test_{}: PSNR = {} dB, SSIM = {}'.format(img_name[0], cur_psnr, cur_ssim))
+                        print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
+                              .format(img_name[0], cur_psnr, cur_ssim,
+                                      act_num.squeeze(0).cpu(), pred_number.squeeze(0).cpu()))
 
                 PSNR_average.append(sum(all_psnr) / len(test_data_loader))
                 SSIM_average.append(sum(all_ssim) / len(test_data_loader))
