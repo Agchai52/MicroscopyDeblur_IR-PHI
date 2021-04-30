@@ -191,7 +191,7 @@ class Discriminator(nn.Module):
         self.fc2 = nn.Linear(self.classes, 1)
 
     def forward(self, img):
-        b, c, h, w = img
+        b, c, h, w = img.shape
         feature_maps = self.d_1(img).view(b, c, -1)  # (b, c, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
         print(feature_maps.shape)
