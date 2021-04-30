@@ -115,7 +115,7 @@ def train(args):
             optimizer_D_S.zero_grad()
 
             # train with fake
-            pred_fake_S, _ = netD_S(fake_S.detach())
+            pred_fake_S, _ = netD_S(fake_S[2].detach())
             loss_d_s_fake = criterion_GAN(pred_fake_S, False)
 
             # train with real
