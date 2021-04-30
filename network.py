@@ -199,11 +199,6 @@ class Discriminator(nn.Module):
         scores = F.normalize(scores, dim=1, p=1)
 
         probability = self.fc2(scores)  # (b, 1)
-        print(feature_maps.shape)
-        print(scores.shape)
-        print(probability.shape)
-
-        exit()
         return probability.unsqueeze(1), scores.unsqueeze(1)  # (b, 1, 1) (b, 1, classes)
 
 
