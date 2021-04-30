@@ -137,8 +137,8 @@ def train(args):
             # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
             # S = G(B) should fake the discriminator S
-            # pred_fake_S = netD_S(fake_S)
-            # loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
+            pred_fake_S, _ = netD_S(fake_S)
+            loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
@@ -152,7 +152,7 @@ def train(args):
             #
             loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda / 3
 
-            loss_g = loss_l2 + loss_grad + loss_recover  # + loss_g_gan_bs
+            loss_g = loss_l2 + loss_grad + loss_recover + loss_g_gan_bs
 
             loss_g.backward()
             optimizer_G.step()
@@ -199,8 +199,8 @@ def train(args):
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
                     _, pred_label = netD_S(pred_S)
-                    _, act_num = torch.topk(label, k=1)
-                    _, pre_num = torch.topk(pred_label, k=1)
+                    _, act_num = torch.topk(label, k=1, dim=-1)
+                    _, pre_num = torch.topk(pred_label, k=1, dim=-1)
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
@@ -209,7 +209,7 @@ def train(args):
                         save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
                         print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
                               .format(img_name[0], cur_psnr, cur_ssim,
-                                      act_num.squeeze(0).cpu(), pred_number.squeeze(0).cpu()))
+                                      act_num.cpu().numpy(), pred_number.cpu().numpy()))
 
                 PSNR_average.append(sum(all_psnr) / len(test_data_loader))
                 SSIM_average.append(sum(all_ssim) / len(test_data_loader))
