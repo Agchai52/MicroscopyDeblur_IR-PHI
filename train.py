@@ -137,7 +137,7 @@ def train(args):
             # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
             # S = G(B) should fake the discriminator S
-            pred_fake_S, _ = netD_S(fake_S)
+            pred_fake_S, _ = netD_S(fake_S[2])
             loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
