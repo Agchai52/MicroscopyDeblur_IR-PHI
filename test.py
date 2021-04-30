@@ -82,8 +82,8 @@ def test(args):
             _, act_num = torch.topk(label, k=1, dim=-1)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            act_num = act_num.cpu().numpy()
-            pre_num = pre_num.cpu().numpy()
+            act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
@@ -157,7 +157,7 @@ def test_real(args):
             _, pred_label = netD_S(pred_S)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            pre_num = pre_num.cpu().numpy()
+            pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
             print("Image Name: {}, predict number =".format(img_name[0],

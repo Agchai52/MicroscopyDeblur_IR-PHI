@@ -160,9 +160,10 @@ def train(args):
             counter += 1
 
             print(
-                "===> Epoch[{}]({}/{}): Loss_G: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f}".format(
+                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} Loss_score: {:.4f} "
+                "Loss_d: {:.4f} Loss_gan: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_grad.item(), loss_l2.item(), loss_recover.item()))
+                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_score.item(), loss_d_s.item(), loss_g_gan_bs.item()))
 
             # To record losses in a .txt file
             losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
@@ -202,8 +203,8 @@ def train(args):
                     _, act_num = torch.topk(label, k=1, dim=-1)
                     _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-                    act_num = act_num.cpu().numpy()
-                    pre_num = pre_num.cpu().numpy()
+                    act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+                    pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
