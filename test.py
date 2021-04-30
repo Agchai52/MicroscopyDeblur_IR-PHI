@@ -81,6 +81,9 @@ def test(args):
             _, pred_label = netD_S(pred_S)
             _, act_num = torch.topk(label, k=1, dim=-1)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
+
+            act_num = act_num.cpu().numpy()
+            pre_num = pre_num.cpu().numpy()
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
@@ -89,7 +92,7 @@ def test(args):
                 save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
                       .format(img_name[0], cur_psnr, cur_ssim,
-                              act_num.squeeze(0).cpu().numpy(), pred_number.squeeze(0).cpu().numpy()))
+                              act_num + 1, pre_num + 1))
 
     total_time = time.time() - start_time
     ave_psnr = sum(all_psnr) / len(test_data_loader)
@@ -154,10 +157,11 @@ def test_real(args):
             _, pred_label = netD_S(pred_S)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
+            pre_num = pre_num.cpu().numpy()
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
             print("Image Name: {}, predict number =".format(img_name[0],
-                                                            pred_number.cpu().numpy()))
+                                                            pre_num + 1))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)

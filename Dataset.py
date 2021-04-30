@@ -51,9 +51,6 @@ class DeblurDataset(Dataset):
         img_B = self.transform(img_B)
 
         scores = transforms.ToTensor()(scores)
-        print(scores)
-        exit()
-
         return img_A, img_B, scores, img_name
 
     def __len__(self):

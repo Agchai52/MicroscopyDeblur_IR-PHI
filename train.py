@@ -201,6 +201,9 @@ def train(args):
                     _, pred_label = netD_S(pred_S)
                     _, act_num = torch.topk(label, k=1, dim=-1)
                     _, pre_num = torch.topk(pred_label, k=1, dim=-1)
+
+                    act_num = act_num.cpu().numpy()
+                    pre_num = pre_num.cpu().numpy()
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
@@ -209,7 +212,7 @@ def train(args):
                         save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
                         print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
                               .format(img_name[0], cur_psnr, cur_ssim,
-                                      act_num.cpu().numpy(), pred_number.cpu().numpy()))
+                                      act_num + 1, pre_num + 1))
 
                 PSNR_average.append(sum(all_psnr) / len(test_data_loader))
                 SSIM_average.append(sum(all_ssim) / len(test_data_loader))
