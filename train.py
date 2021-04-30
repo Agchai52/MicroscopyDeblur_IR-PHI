@@ -144,10 +144,11 @@ def train(args):
             loss_grad = (criterion_grad(fake_S[0], real_S0) +
                          criterion_grad(fake_S[1], real_S1) +
                          criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3
-            loss_recover = (criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[0], real_S0) +
-                            criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[1], real_S1) +
-                            criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[2], real_S2)) * args.L2_lambda / 3
-            # loss_recover = criterion_L2(recov_B, real_B) * args.LR_lambda
+            # loss_cycle = (criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[0], real_S0) +
+            #                 criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[1], real_S1) +
+            #                 criterion_L2(recov_B[0], real_B) + criterion_L2(recov_S[2], real_S2)) * args.L2_lambda / 3
+            #
+            loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda / 3
 
             loss_g = loss_l2 + loss_grad + loss_recover  # + loss_g_gan_bs
 
