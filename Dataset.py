@@ -25,8 +25,7 @@ class DeblurDataset(Dataset):
         line = self.img_path[index]
         img_path, label = line.split('\t')
         label = float(label)
-        label = np.expand_dims(label, axis=(0, 1))
-        print(label)
+        label = np.expand_dims(np.expand_dims(label, axis=0), axis=0)
 
         img_A = Image.open(img_path + '_blur.png').convert('L')
         img_B = Image.open(img_path + '_sharp.png').convert('L')
