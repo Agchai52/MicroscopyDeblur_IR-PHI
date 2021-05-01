@@ -71,7 +71,7 @@ def test(args):
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)
+            real_B, real_S = real_B.to(device), real_S.to(device)
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
@@ -155,7 +155,6 @@ def test_real(args):
             pred_label = netD(pred_S)
             pred_label = pred_label.squeeze(0).squeeze(0).cpu().numpy()
 
-            pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
             print("Image Name: {}, predict number =".format(img_name[0],
