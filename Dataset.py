@@ -24,7 +24,7 @@ class DeblurDataset(Dataset):
 
         line = self.img_path[index]
         img_path, label = line.split('\t')
-        label = np.array([label])
+        label = np.array([float(label)])
         label = np.expand_dims(label, axis=0)
         label = torch.from_numpy(label)
 
