@@ -191,9 +191,10 @@ class Discriminator(nn.Module):
                                  ConvBlock(self.ndf * 8, self.ndf * 8, stride=1),  # (B, 512, H/16, W/16)
                                  )
         self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
-                                 nn.ReLU(inplace=True))
+                                # nn.ReLU(inplace=True)
+                                 )
         self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
-        #                        nn.ReLU(inplace=True)
+                                # nn.ReLU(inplace=True)
                                  )
 
     def forward(self, img):
