@@ -116,13 +116,25 @@ def train(args):
 
             # train with fake
             fake_label = netD(fake_S[2].detach())
-            pred_fake_S = fake_label / label
+            pred_fake_S = torch.div(fake_label,  label)
+
             loss_d_fake = criterion_GAN(pred_fake_S, False)
 
             # train with real
             real_label = netD(real_S)
-            pred_real_S = real_label / label
+            pred_real_S = torch.div(real_label,  label)
             loss_d_real = criterion_GAN(pred_real_S, True)
+
+            print(label.item())
+            print(fake_label.item())
+            print(pred_fake_S.item())
+            print(loss_d_fake.item())
+            print(real_label.item())
+            print(pred_real_S.item())
+            print(loss_d_real.item())
+
+            exit()
+
 
             # combine d loss
             loss_d = (loss_d_fake + loss_d_real)
@@ -139,7 +151,7 @@ def train(args):
 
             # S = G(B) should fake the discriminator S
             fake_label = netD(fake_S[2])
-            pred_fake_S = fake_label / label
+            pred_fake_S = torch.div(fake_label,  label)
             loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
