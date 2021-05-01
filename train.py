@@ -125,12 +125,12 @@ def train(args):
             pred_real_S = torch.div(real_label,  label)
             loss_d_real = criterion_GAN(pred_real_S, True)
 
-            print(label.item())
-            print(fake_label.item())
-            print(pred_fake_S.item())
+            print(label)
+            print(fake_label)
+            print(pred_fake_S)
             print(loss_d_fake.item())
-            print(real_label.item())
-            print(pred_real_S.item())
+            print(real_label)
+            print(pred_real_S)
             print(loss_d_real.item())
 
             exit()
