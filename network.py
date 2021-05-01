@@ -181,10 +181,13 @@ class Discriminator(nn.Module):
         self.ndf = args.ndf
         self.device = device
         self.classes = args.ndf // 2
-        self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, cha_att=False, stride=2),  # (B, 64, H/2, W/2)
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, cha_att=False, stride=2),   # (B, 128, H/4, W/4)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, cha_att=False, stride=2),   # (B, 256, H/8, W/8)
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, cha_att=False, stride=2),   # (B, 512, H/16, W/16)
+        self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
+                                 ConvBlock(self.ndf * 1, self.ndf * 1, stride=1),
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 256, H/8, W/8)
+                                 ConvBlock(self.ndf * 2, self.ndf * 2, stride=1),
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),
+                                 ConvBlock(self.ndf * 4, self.ndf * 4, stride=1),
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
                                  )
         self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
                                  nn.ReLU(inplace=True))
