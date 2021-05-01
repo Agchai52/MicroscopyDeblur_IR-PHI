@@ -122,7 +122,7 @@ def train(args):
 
             # train with real
             real_label = netD(real_S)
-            pred_real_S = 1 - criterion_L1(real_label, label) / label
+            pred_real_S = (label.squeeze(1) - criterion_L1(real_label, label)) / label
             loss_d_real = pred_real_S  # criterion_GAN(pred_real_S, True)
 
             # combine d loss
@@ -140,7 +140,7 @@ def train(args):
 
             # S = G(B) should fake the discriminator S
             fake_label = netD(fake_S[2])
-            pred_fake_S = 1 - criterion_L1(fake_label, label) / label
+            pred_fake_S = (label.squeeze(1) - criterion_L1(fake_label, label)) / label
             loss_g_gan_bs = pred_fake_S # criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
