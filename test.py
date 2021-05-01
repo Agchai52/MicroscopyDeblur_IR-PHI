@@ -21,17 +21,17 @@ def test(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_DS = Discriminator(args, device)
-    model_DS = nn.DataParallel(model_DS)
+    model_D = Discriminator(args, device)
+    model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
     netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
-    netD_S = model_DS.to(device)
-    net_d_s_path = "checkpoint/netD_S"
+    netD = model_D.to(device)
+    net_d_path = "checkpoint/netD"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_s_path):
+    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -41,10 +41,10 @@ def test(args):
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
 
-        model_path_D_S = find_latest_model(net_d_s_path)
-        checkpointDS = torch.load(model_path_D_S)
-        netD_S.load_state_dict(checkpointDS['model_state_dict'])
-        netD_S.eval()
+        model_path_D = find_latest_model(net_d_path)
+        checkpointD = torch.load(model_path_D)
+        netD.load_state_dict(checkpointD['model_state_dict'])
+        netD.eval()
 
     print("====> Loading data")
     ############################
@@ -78,7 +78,7 @@ def test(args):
             pred_S = pred_S[-1]
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
-            _, pred_label = netD_S(pred_S)
+            _, pred_label = netD(pred_S)
             _, act_num = torch.topk(label, k=1, dim=-1)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
@@ -111,17 +111,17 @@ def test_real(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_DS = Discriminator(args, device)
-    model_DS = nn.DataParallel(model_DS)
+    model_D = Discriminator(args, device)
+    model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
     netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
-    netD_S = model_DS.to(device)
-    net_d_s_path = "checkpoint/netD_S"
+    netD = model_D.to(device)
+    net_d_path = "checkpoint/netD"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_s_path):
+    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -131,10 +131,10 @@ def test_real(args):
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
 
-        model_path_D_S = find_latest_model(net_d_s_path)
-        checkpointDS = torch.load(model_path_D_S)
-        netD_S.load_state_dict(checkpointDS['model_state_dict'])
-        netD_S.eval()
+        model_path_D = find_latest_model(net_d_path)
+        checkpointD = torch.load(model_path_D)
+        netD.load_state_dict(checkpointD['model_state_dict'])
+        netD.eval()
 
     print("====> Loading data")
     ############################
@@ -154,7 +154,7 @@ def test_real(args):
             pred_S = pred_S[-1]
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
-            _, pred_label = netD_S(pred_S)
+            _, pred_label = netD(pred_S)
             _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
             pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()

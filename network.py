@@ -181,14 +181,15 @@ class Discriminator(nn.Module):
         self.ndf = args.ndf
         self.device = device
         self.classes = args.classes
-        self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/4, W/4)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/8, W/8)
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
+        self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, cha_att=False, stride=2),  # (B, 64, H/2, W/2)
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, cha_att=False, stride=2),   # (B, 128, H/4, W/4)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, cha_att=False, stride=2),   # (B, 256, H/8, W/8)
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, cha_att=False, stride=2),   # (B, 512, H/16, W/16)
                                  )
         self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
+                                 nn.ReLU(inplace=True))
+        self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
                                  nn.Sigmoid())
-        self.fc2 = nn.Linear(self.classes, 1)
 
     def forward(self, img):
         b, c, h, w = img.shape
@@ -196,9 +197,9 @@ class Discriminator(nn.Module):
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
 
         scores = self.fc1(feature_maps)  # (b, classes)
+        probability = self.fc2(scores)   # (b, 1)
         scores = F.normalize(scores, dim=1, p=1)
 
-        probability = self.fc2(scores)  # (b, 1)
         return probability.unsqueeze(1), scores.unsqueeze(1)  # (b, 1, 1) (b, 1, classes)
 
 
@@ -265,7 +266,7 @@ class ResBlock(nn.Module):
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, c_in, c_out, k_size=3, stride=1, pad=0):
+    def __init__(self, c_in, c_out, cha_att=True, k_size=3, stride=1, pad=0):
         super(ConvBlock, self).__init__()
         self.c_in = c_in
         self.c_out = c_out
@@ -279,14 +280,23 @@ class ConvBlock(nn.Module):
                 Channel_Att(self.c_out),
             )
         elif stride == 2:
-            self.model = nn.Sequential(
-                nn.ReflectionPad2d((0, 1, 0, 1)),
-                nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
-                          padding_mode='circular'),
-                nn.InstanceNorm2d(self.c_out),
-                nn.ReLU(inplace=True),
-                Channel_Att(self.c_out),
-            )
+            if cha_att:
+                self.model = nn.Sequential(
+                    nn.ReflectionPad2d((0, 1, 0, 1)),
+                    nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
+                              padding_mode='circular'),
+                    nn.InstanceNorm2d(self.c_out),
+                    nn.ReLU(inplace=True),
+                    Channel_Att(self.c_out),
+                )
+            else:
+                self.model = nn.Sequential(
+                    nn.ReflectionPad2d((0, 1, 0, 1)),
+                    nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
+                              padding_mode='circular'),
+                    nn.InstanceNorm2d(self.c_out),
+                    nn.ReLU(inplace=True),
+                )
         else:
             raise Exception("stride size = 1 or 2")
 

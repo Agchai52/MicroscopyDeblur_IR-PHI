@@ -37,22 +37,22 @@ def train(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_DS = Discriminator(args, device)
-    model_DS = nn.DataParallel(model_DS)
+    model_D = Discriminator(args, device)
+    model_D = nn.DataParallel(model_D)
 
     print('===> Building models')
     netG = model_G.to(device)
     optimizer_G = optim.Adam(netG.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
     net_g_path = "checkpoint/netG"
 
-    netD_S = model_DS.to(device)
-    optimizer_D_S = optim.Adam(netD_S.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
-    net_d_s_path = "checkpoint/netD_S"
+    netD = model_D.to(device)
+    optimizer_D = optim.Adam(netD.parameters(), lr=args.lr, betas=(args.beta1, 0.999), amsgrad=True)
+    net_d_path = "checkpoint/netD"
 
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_s_path):
+    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
         print(" [!] Load failed...")
         netG.apply(weights_init)
-        netD_S.apply(weights_init)
+        netD.apply(weights_init)
         pre_epoch = 0
     else:
         print(" [*] Load SUCCESS")
@@ -61,15 +61,15 @@ def train(args):
         netG.load_state_dict(checkpointG['model_state_dict'])
         optimizer_G.load_state_dict(checkpointG['optimizer_state_dict'])
 
-        model_path_D_S = find_latest_model(net_d_s_path)
-        checkpointDS = torch.load(model_path_D_S)
-        netD_S.load_state_dict(checkpointDS['model_state_dict'])
-        optimizer_D_S.load_state_dict(checkpointDS['optimizer_state_dict'])
+        model_path_D = find_latest_model(net_d_path)
+        checkpointD = torch.load(model_path_D)
+        netD.load_state_dict(checkpointD['model_state_dict'])
+        optimizer_D.load_state_dict(checkpointD['optimizer_state_dict'])
 
         pre_epoch = checkpointG['epoch']
 
     netG.train()
-    netD_S.train()
+    netD.train()
     print(netG)
 
     # Gemometric Blur Model as Second Generator
@@ -110,24 +110,24 @@ def train(args):
 
 
             ############################
-            # (1) Update D_S network: maximize log(D(x)) + log(1 - D(G(z)))
+            # (1) Update D network: maximize log(D(x)) + log(1 - D(G(z)))
             ###########################
-            optimizer_D_S.zero_grad()
+            optimizer_D.zero_grad()
 
             # train with fake
-            pred_fake_S, _ = netD_S(fake_S[2].detach())
-            loss_d_s_fake = criterion_GAN(pred_fake_S, False)
+            pred_fake_S, _ = netD(fake_S[2].detach())
+            loss_d_fake = criterion_GAN(pred_fake_S, False)
 
             # train with real
-            pred_real_S, pred_label = netD_S(real_S)
-            loss_d_s_real = criterion_GAN(pred_real_S, True)
+            pred_real_S, pred_label = netD(real_S)
+            loss_d_real = criterion_GAN(pred_real_S, True)
 
             # combine d loss
             loss_score = criterion_L1(label, pred_label)
-            loss_d_s = (loss_d_s_fake + loss_d_s_real) + loss_score
+            loss_d = (loss_d_fake + loss_d_real) + loss_score
 
-            loss_d_s.backward()
-            optimizer_D_S.step()
+            loss_d.backward()
+            optimizer_D.step()
 
             ############################
             # (1) Update G network:
@@ -137,7 +137,7 @@ def train(args):
             # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
             # S = G(B) should fake the discriminator S
-            pred_fake_S, _ = netD_S(fake_S[2])
+            pred_fake_S, _ = netD(fake_S[2])
             loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
@@ -163,7 +163,7 @@ def train(args):
                 "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} Loss_score: {:.4f} "
                 "Loss_d: {:.4f} Loss_gan: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_score.item(), loss_d_s.item(), loss_g_gan_bs.item()))
+                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_score.item(), loss_d.item(), loss_g_gan_bs.item()))
 
             # To record losses in a .txt file
             losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
@@ -173,13 +173,20 @@ def train(args):
                 file.writelines(losses_dg_str + "\n")
 
             if (counter % 500 == 1) or ((epoch == args.epoch - 1) and (iteration == len(train_data_loader) - 1)):
-                net_g_save_path = net_g_path + "/G_model_epoch_{}.pth".format(epoch+1)
+                net_g_save_path = net_g_path + "/G_model_epoch_{}.pth".format(epoch + 1)
+                net_d_save_path = net_d_path + "/D_model_epoch_{}.pth".format(epoch + 1)
 
                 torch.save({
                     'epoch': epoch + 1,
                     'model_state_dict': netG.state_dict(),
                     'optimizer_state_dict': optimizer_G.state_dict()
                 }, net_g_save_path)
+
+                torch.save({
+                    'epoch': epoch + 1,
+                    'model_state_dict': netD.state_dict(),
+                    'optimizer_state_dict': optimizer_D.state_dict()
+                }, net_d_save_path)
 
                 print("Checkpoint saved to {}".format("checkpoint/"))
 
@@ -199,7 +206,7 @@ def train(args):
                     pred_S = pred_S[-1]
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
-                    _, pred_label = netD_S(pred_S)
+                    _, pred_label = netD(pred_S)
                     _, act_num = torch.topk(label, k=1, dim=-1)
                     _, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
