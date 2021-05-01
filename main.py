@@ -29,7 +29,6 @@ parser.add_argument('--output_nc', dest='output_nc', type=int, default=1, help='
 parser.add_argument('--lr', dest='lr', type=float, default=0.0001, help='initial learning rate for adam')
 parser.add_argument('--beta1', dest='beta1', type=float, default=0.5, help='momentum term of adam')
 parser.add_argument('--flip', dest='flip', type=bool, default=True, help='if flip the images for data argumentation')
-parser.add_argument('--classes', dest='classes', type=int, default=20, help='rescale image to this size')
 parser.add_argument('--phase', dest='phase', default='train', help='train, test')
 parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkpoint', help='models are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
@@ -55,7 +54,7 @@ if args.phase == 'train':
     if not os.path.exists(args.checkpoint_dir):
         os.makedirs(args.checkpoint_dir)
         os.makedirs("checkpoint/netG")
-        os.makedirs("checkpoint/netD")
+        os.makedirs("checkpoint/netD_S")
 
     if not os.path.exists(args.valid_dir):
         os.makedirs(args.valid_dir)
@@ -79,4 +78,3 @@ elif args.phase == 'test_real':
     test.test_real(args)
 else:
     raise Exception("Phase should be 'train" or 'test' or 'test_real')
-

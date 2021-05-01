@@ -180,30 +180,45 @@ class Discriminator(nn.Module):
         self.input_nc = args.input_nc
         self.ndf = args.ndf
         self.device = device
-        self.classes = args.ndf // 2
         self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
-                                 ConvBlock(self.ndf * 1, self.ndf * 1, stride=1),
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 256, H/8, W/8)
-                                 ConvBlock(self.ndf * 2, self.ndf * 2, stride=1),
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),
-                                 ConvBlock(self.ndf * 4, self.ndf * 4, stride=1),
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/4, W/4)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/8, W/8)
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
-                                 ConvBlock(self.ndf * 8, self.ndf * 8, stride=1),  # (B, 512, H/16, W/16)
-                                 )
-        self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
-                                # nn.ReLU(inplace=True)
-                                 )
-        self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
-                                 nn.Sigmoid()
-                                 )
+                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
+                                 )                                                  # (B, 1, H/16, W/16)
+
+        self.d_2 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/4, W/4)
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/8, W/8)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/16, W/16)
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/32, W/32)
+                                 nn.ReflectionPad2d((1, 1, 1, 1)),
+                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
+                                 )                                                  # (B, 1, H/32, W/32)
+
+        self.d_3 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/8, W/8)
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 128, H/16, W/16)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 256, H/32, W/32)
+                                 nn.ReflectionPad2d((1, 1, 1, 1)),
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/32, W/32)
+                                 nn.ReflectionPad2d((1, 1, 1, 1)),
+                                 nn.Conv2d(self.ndf * 8, 1, kernel_size=3, stride=1, padding=1, padding_mode='circular')
+                                 )                                                  # (B, 1, H/32, W/32)
 
     def forward(self, img):
-        b, c, h, w = img.shape
-        feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
-        feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
-        fc = self.fc1(feature_maps)  # (b, classes)
-        res = self.fc2(fc) * 20  # (b, 1)
-        return res
+        def random_crop(img, crop_shape):
+            b, _, h, w = img.shape
+            h1 = int(np.ceil(np.random.uniform(1e-2, h - crop_shape[0])))
+            w1 = int(np.ceil(np.random.uniform(1e-2, w - crop_shape[1])))
+            crop = img[:, :, h1:h1+crop_shape[0], w1:w1+crop_shape[1]]
+            return crop
+
+        b, _, h, w = img.shape
+        out1 = self.d_1(img)
+        img = random_crop(img, (h // 2, w // 2))
+        out2 = self.d_2(img)
+        img = random_crop(img, (h // 4, w // 4))
+        out3 = self.d_3(img)
+        return out1, out2, out3
 
 
 class Attention(nn.Module):
@@ -269,7 +284,7 @@ class ResBlock(nn.Module):
 
 
 class ConvBlock(nn.Module):
-    def __init__(self, c_in, c_out, cha_att=True, k_size=3, stride=1, pad=0):
+    def __init__(self, c_in, c_out, k_size=3, stride=1, pad=0):
         super(ConvBlock, self).__init__()
         self.c_in = c_in
         self.c_out = c_out
@@ -283,23 +298,14 @@ class ConvBlock(nn.Module):
                 Channel_Att(self.c_out),
             )
         elif stride == 2:
-            if cha_att:
-                self.model = nn.Sequential(
-                    nn.ReflectionPad2d((0, 1, 0, 1)),
-                    nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
-                              padding_mode='circular'),
-                    nn.InstanceNorm2d(self.c_out),
-                    nn.ReLU(inplace=True),
-                    Channel_Att(self.c_out),
-                )
-            else:
-                self.model = nn.Sequential(
-                    nn.ReflectionPad2d((0, 1, 0, 1)),
-                    nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
-                              padding_mode='circular'),
-                    nn.InstanceNorm2d(self.c_out),
-                    nn.ReLU(inplace=True),
-                )
+            self.model = nn.Sequential(
+                nn.ReflectionPad2d((0, 1, 0, 1)),
+                nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
+                          padding_mode='circular'),
+                nn.InstanceNorm2d(self.c_out),
+                nn.ReLU(inplace=True),
+                Channel_Att(self.c_out),
+            )
         else:
             raise Exception("stride size = 1 or 2")
 
@@ -323,8 +329,12 @@ class GANLoss(nn.Module):
         return target_tensor.expand_as(image)
 
     def __call__(self, img, target_is_real):
-        target_tensor = self.get_target_tensor(img, target_is_real)
-        loss = self.loss(img, target_tensor)
+        img1, img2, img3 = img
+        target_tensor1 = self.get_target_tensor(img1, target_is_real)
+        target_tensor2 = self.get_target_tensor(img2, target_is_real)
+        target_tensor3 = self.get_target_tensor(img3, target_is_real)
+
+        loss = (self.loss(img1, target_tensor1) + self.loss(img2, target_tensor2) + self.loss(img3, target_tensor3)) / 3
         return loss
 
 

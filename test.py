@@ -21,17 +21,11 @@ def test(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Discriminator(args, device)
-    model_D = nn.DataParallel(model_D)
-
     print('===> Loading models')
     netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
-    netD = model_D.to(device)
-    net_d_path = "checkpoint/netD"
-
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -40,11 +34,6 @@ def test(args):
         checkpointG = torch.load(model_path_G)
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
-
-        model_path_D = find_latest_model(net_d_path)
-        checkpointD = torch.load(model_path_D)
-        netD.load_state_dict(checkpointD['model_state_dict'])
-        netD.eval()
 
     print("====> Loading data")
     ############################
@@ -70,27 +59,19 @@ def test(args):
     start_time = time.time()
     with torch.no_grad():
         for batch in test_data_loader:
-            real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S = real_B.to(device), real_S.to(device)
-            # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
+            real_B, real_S, img_name = batch[0], batch[1], batch[2]
+            real_B, real_S = real_B.to(device), real_S.to(device)  # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
-
-            pred_label = netD(pred_S)
-            label = label.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-            pred_label = pred_label.squeeze(0).cpu().numpy()
-
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
-                print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
-                      .format(img_name[0], cur_psnr, cur_ssim,
-                              label, pred_label))
+                save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
+                print('test_{}: PSNR = {} dB, SSIM = {}'.format(img_name[0], cur_psnr, cur_ssim))
 
     total_time = time.time() - start_time
     ave_psnr = sum(all_psnr) / len(test_data_loader)
@@ -109,17 +90,11 @@ def test_real(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Discriminator(args, device)
-    model_D = nn.DataParallel(model_D)
-
     print('===> Loading models')
     netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
-    netD = model_D.to(device)
-    net_d_path = "checkpoint/netD"
-
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -128,12 +103,6 @@ def test_real(args):
         checkpointG = torch.load(model_path_G)
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
-
-        model_path_D = find_latest_model(net_d_path)
-        checkpointD = torch.load(model_path_D)
-        netD.load_state_dict(checkpointD['model_state_dict'])
-        netD.eval()
-
     print("====> Loading data")
     ############################
     # For Real Images
@@ -151,13 +120,8 @@ def test_real(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
-
-            pred_label = netD(pred_S)
-            pred_label = pred_label.squeeze(0).cpu().numpy()
-
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-            print("Image Name: {}, predict number = {}".format(img_name[0], pred_label))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)

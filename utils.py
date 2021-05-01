@@ -47,7 +47,7 @@ def find_latest_model(net_path):
         iter_num = max(model_names)
         if net_path[-1] == 'G':
             return os.path.join(net_path, "G_model_epoch_{}.pth".format(iter_num))
-        elif net_path[-1] == 'D':
+        elif net_path[-1] == 'S':
             return os.path.join(net_path, "D_model_epoch_{}.pth".format(iter_num))
 
 
@@ -114,7 +114,6 @@ def plot_losses():
     # plt.title("D1_D2_G PSNR")
     # plt.savefig("plot_ddg_loss.jpg")
 # plot_losses()
-
 
 
 
