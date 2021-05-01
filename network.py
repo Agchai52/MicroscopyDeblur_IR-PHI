@@ -194,7 +194,7 @@ class Discriminator(nn.Module):
                                 # nn.ReLU(inplace=True)
                                  )
         self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
-                                # nn.ReLU(inplace=True)
+                                 nn.Sigmoid()
                                  )
 
     def forward(self, img):
@@ -202,7 +202,7 @@ class Discriminator(nn.Module):
         feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
         fc = self.fc1(feature_maps)  # (b, classes)
-        res = self.fc2(fc)   # (b, 1)
+        res = self.fc2(fc) * 20  # (b, 1)
         return res
 
 
