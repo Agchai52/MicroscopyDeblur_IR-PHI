@@ -192,7 +192,8 @@ class Discriminator(nn.Module):
         self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
                                  nn.ReLU(inplace=True))
         self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
-                                 nn.ReLU(inplace=True))
+        #                        nn.ReLU(inplace=True)
+                                 )
 
     def forward(self, img):
         b, c, h, w = img.shape
