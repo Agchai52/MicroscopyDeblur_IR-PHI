@@ -156,7 +156,7 @@ def train(args):
 
             # S = G(B) should fake the discriminator S
             fake_label = netD(fake_S[2])
-            pred_fake_S = torch.div(fake_label, label)
+            pred_fake_S = fake_label / label
             loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
@@ -226,8 +226,8 @@ def train(args):
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
                     pred_label = netD(pred_S)
-                    label = label.squeeze(0).squeeze(0).cpu().numpy()
-                    pred_label = pred_label.squeeze(0).squeeze(0).cpu().numpy()
+                    label = label.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+                    pred_label = pred_label.squeeze(0).cpu().numpy()
 
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)

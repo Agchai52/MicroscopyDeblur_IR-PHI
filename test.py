@@ -79,8 +79,8 @@ def test(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            label = label.squeeze(0).squeeze(0).cpu().numpy()
-            pred_label = pred_label.squeeze(0).squeeze(0).cpu().numpy()
+            label = label.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            pred_label = pred_label.squeeze(0).cpu().numpy()
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
@@ -153,7 +153,7 @@ def test_real(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            pred_label = pred_label.squeeze(0).squeeze(0).cpu().numpy()
+            pred_label = pred_label.squeeze(0).cpu().numpy()
 
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
