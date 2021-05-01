@@ -115,16 +115,17 @@ def train(args):
             optimizer_D.zero_grad()
 
             # train with fake
-            pred_fake_S, _ = netD(fake_S[2].detach())
+            fake_label = netD(fake_S[2].detach())
+            pred_fake_S = criterion_L1(fake_label, label) / label
             loss_d_fake = criterion_GAN(pred_fake_S, False)
 
             # train with real
-            pred_real_S, pred_label = netD(real_S)
+            real_label = netD(real_S)
+            pred_real_S = criterion_L1(real_label, label) / label
             loss_d_real = criterion_GAN(pred_real_S, True)
 
             # combine d loss
-            loss_score = criterion_L1(label, pred_label)
-            loss_d = (loss_d_fake + loss_d_real) + loss_score * args.L2_lambda
+            loss_d = (loss_d_fake + loss_d_real)
 
             loss_d.backward()
             optimizer_D.step()
@@ -137,7 +138,8 @@ def train(args):
             # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
 
             # S = G(B) should fake the discriminator S
-            pred_fake_S, _ = netD(fake_S[2])
+            fake_label = netD(fake_S[2])
+            pred_fake_S = criterion_L1(fake_label, label) / label
             loss_g_gan_bs = criterion_GAN(pred_fake_S, True)
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
@@ -160,10 +162,10 @@ def train(args):
             counter += 1
 
             print(
-                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} Loss_score: {:.4f} "
-                "Loss_d: {:.4f} Loss_gan: {:.4f}".format(
+                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} Loss_d_real: {:.4f} "
+                "Loss_d_fake: {:.4f} Loss_gan: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_score.item(), loss_d.item(), loss_g_gan_bs.item()))
+                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_d_real.item(), loss_d_fake.item(), loss_g_gan_bs.item()))
 
             # To record losses in a .txt file
             losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
@@ -206,12 +208,10 @@ def train(args):
                     pred_S = pred_S[-1]
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
-                    _, pred_label = netD(pred_S)
-                    _, act_num = torch.topk(label, k=1, dim=-1)
-                    _, pre_num = torch.topk(pred_label, k=1, dim=-1)
+                    pred_label = netD(pred_S)
+                    label = label.squeeze(0).squeeze(0).cpu().numpy()
+                    pred_label = pred_label.squeeze(0).squeeze(0).cpu().numpy()
 
-                    act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-                    pre_num = pre_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
@@ -220,7 +220,7 @@ def train(args):
                         save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
                         print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
                               .format(img_name[0], cur_psnr, cur_ssim,
-                                      act_num + 1, pre_num + 1))
+                                      label, pred_label))
 
                 PSNR_average.append(sum(all_psnr) / len(test_data_loader))
                 SSIM_average.append(sum(all_ssim) / len(test_data_loader))

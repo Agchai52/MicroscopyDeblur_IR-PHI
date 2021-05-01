@@ -180,7 +180,7 @@ class Discriminator(nn.Module):
         self.input_nc = args.input_nc
         self.ndf = args.ndf
         self.device = device
-        self.classes = args.classes
+        self.classes = args.ndf // 2
         self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, cha_att=False, stride=2),  # (B, 64, H/2, W/2)
                                  ConvBlock(self.ndf * 1, self.ndf * 2, cha_att=False, stride=2),   # (B, 128, H/4, W/4)
                                  ConvBlock(self.ndf * 2, self.ndf * 4, cha_att=False, stride=2),   # (B, 256, H/8, W/8)
@@ -189,18 +189,15 @@ class Discriminator(nn.Module):
         self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
                                  nn.ReLU(inplace=True))
         self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
-                                 nn.Sigmoid())
+                                 nn.ReLU(inplace=True))
 
     def forward(self, img):
         b, c, h, w = img.shape
         feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
-
-        scores = self.fc1(feature_maps)  # (b, classes)
-        probability = self.fc2(scores)   # (b, 1)
-        scores = F.normalize(scores, dim=1, p=1)
-
-        return probability.unsqueeze(1), scores.unsqueeze(1)  # (b, 1, 1) (b, 1, classes)
+        fc = self.fc1(feature_maps)  # (b, classes)
+        res = self.fc2(fc)   # (b, 1)
+        return res.unsqueeze(dim=1)
 
 
 class Attention(nn.Module):
