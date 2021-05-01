@@ -114,6 +114,8 @@ def train(args):
             ###########################
             optimizer_D.zero_grad()
 
+            label = label.squeeze(1)
+
             # train with fake
             fake_label = netD(fake_S[2].detach())
             pred_fake_S = torch.div(fake_label,  label)

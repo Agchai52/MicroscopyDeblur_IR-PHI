@@ -200,7 +200,7 @@ class Discriminator(nn.Module):
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
         fc = self.fc1(feature_maps)  # (b, classes)
         res = self.fc2(fc)   # (b, 1)
-        return res.unsqueeze(dim=1)
+        return res
 
 
 class Attention(nn.Module):
