@@ -118,13 +118,13 @@ def train(args):
 
             # train with fake
             fake_label = netD(fake_S[2].detach())
-            pred_fake_S = torch.div(fake_label, label)
+            pred_fake_S = fake_label / label
 
             loss_d_fake = criterion_GAN(pred_fake_S, False)
 
             # train with real
             real_label = netD(real_S)
-            pred_real_S = torch.div(real_label, label)
+            pred_real_S = real_label / label
             loss_d_real = criterion_GAN(pred_real_S, True)
 
             print(label)
