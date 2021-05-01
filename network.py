@@ -293,7 +293,7 @@ class ConvBlock(nn.Module):
                 nn.ReflectionPad2d((1, 1, 1, 1)),
                 nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
                           padding_mode='circular'),
-                nn.SELU(inplace=True),
+                nn.SELU(),
                 Channel_Att(self.c_out),
             )
         elif stride == 2:
@@ -301,7 +301,7 @@ class ConvBlock(nn.Module):
                 nn.ReflectionPad2d((0, 1, 0, 1)),
                 nn.Conv2d(self.c_in, self.c_out, kernel_size=k_size, stride=stride, padding=pad,
                           padding_mode='circular'),
-                nn.SELU(inplace=True),
+                nn.SELU(),
                 Channel_Att(self.c_out),
             )
         else:
