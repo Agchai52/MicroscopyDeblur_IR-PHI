@@ -95,6 +95,7 @@ def train(args):
         for iteration, batch in enumerate(train_data_loader, 1):
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
             real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
+            lable.double()
 
             fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
             # fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
@@ -116,6 +117,9 @@ def train(args):
 
             # train with fake
             fake_label = netD(fake_S[2].detach())
+            print(fake_label.type())
+            print(label.type())
+
             pred_fake_S = criterion_L1(fake_label, label) / label
             loss_d_fake = criterion_GAN(pred_fake_S, False)
 
