@@ -128,8 +128,11 @@ def train(args):
             loss_d_real = criterion_GAN(pred_real_S, True)
 
             print(label)
+            print(label.shape)
             print(fake_label)
+            print(fake_label.shape)
             print(pred_fake_S)
+            print(pred_fake_S.shape)
             print(loss_d_fake.item())
             print(real_label)
             print(pred_real_S)
