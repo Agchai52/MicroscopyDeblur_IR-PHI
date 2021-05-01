@@ -116,8 +116,6 @@ def train(args):
 
             # train with fake
             fake_label = netD(fake_S[2].detach())
-            print(fake_label.type())
-            print(label.type())
 
             pred_fake_S = criterion_L1(fake_label, label) / label
             loss_d_fake = criterion_GAN(pred_fake_S, False)
