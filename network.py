@@ -200,6 +200,7 @@ class Discriminator(nn.Module):
         feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
         fc = self.fc1(feature_maps)  # (b, classes)
+        fc = F.normalize(fc, p=1, dim=-1)
         res = self.fc2(fc)   # (b, 1)
         return res
 
