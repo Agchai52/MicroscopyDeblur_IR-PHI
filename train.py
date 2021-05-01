@@ -124,7 +124,7 @@ def train(args):
 
             # combine d loss
             loss_score = criterion_L1(label, pred_label)
-            loss_d = (loss_d_fake + loss_d_real) + loss_score
+            loss_d = (loss_d_fake + loss_d_real) + loss_score * args.L2_lambda
 
             loss_d.backward()
             optimizer_D.step()
