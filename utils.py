@@ -47,8 +47,8 @@ def find_latest_model(net_path):
         iter_num = max(model_names)
         if net_path[-1] == 'G':
             return os.path.join(net_path, "G_model_epoch_{}.pth".format(iter_num))
-        elif net_path[-1] == 'R':
-            return os.path.join(net_path, "R_model_epoch_{}.pth".format(iter_num))
+        elif net_path[-1] == 'D':
+            return os.path.join(net_path, "D_model_epoch_{}.pth".format(iter_num))
 
 
 class LambdaLR():
