@@ -114,7 +114,7 @@ def train(args):
             ###########################
             optimizer_D.zero_grad()
 
-            # label = label.squeeze(1)
+            label = label.squeeze(1).squeeze(1)
 
             # train with fake
             fake_label = netD(fake_S[2].detach())
