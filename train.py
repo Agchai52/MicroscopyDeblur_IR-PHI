@@ -155,7 +155,7 @@ def train(args):
                     loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_d_real.item(), loss_d_fake.item()))
 
             # To record losses in a .txt file
-            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
+            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_d_real.item(), loss_d_fake.item()]
             losses_dg_str = " ".join(str(v) for v in losses_dg)
 
             with open(loss_record, 'a+') as file:
