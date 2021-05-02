@@ -29,12 +29,13 @@ parser.add_argument('--output_nc', dest='output_nc', type=int, default=1, help='
 parser.add_argument('--lr', dest='lr', type=float, default=0.0001, help='initial learning rate for adam')
 parser.add_argument('--beta1', dest='beta1', type=float, default=0.5, help='momentum term of adam')
 parser.add_argument('--flip', dest='flip', type=bool, default=True, help='if flip the images for data argumentation')
+parser.add_argument('--classes', dest='classes', type=int, default=20, help='rescale image to this size')
 parser.add_argument('--phase', dest='phase', default='train', help='train, test')
 parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkpoint', help='models are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
 parser.add_argument('--valid_dir', dest='valid_dir', default='./valid', help='valid sample are saved here')
 parser.add_argument('--L2_lambda', dest='L2_lambda', type=float, default=100., help='weight on L2 term in objective')
-parser.add_argument('--LR_lambda', dest='LR_lambda', type=float, default=100., help='weight on LR term in objective')
+parser.add_argument('--L1_lambda', dest='L1_lambda', type=float, default=100., help='weight on LR term in objective')
 parser.add_argument('--dark_channel_lambda', dest='dark_channel_lambda', type=float, default=100, help='weight on Dark Channel loss in objective')
 parser.add_argument('--H', dest='H', default=256, type=int, help='Test size H')
 parser.add_argument('--W', dest='W', default=256, type=int, help='Test size W')
@@ -54,7 +55,7 @@ if args.phase == 'train':
     if not os.path.exists(args.checkpoint_dir):
         os.makedirs(args.checkpoint_dir)
         os.makedirs("checkpoint/netG")
-        os.makedirs("checkpoint/netD_S")
+        os.makedirs("checkpoint/netD")
 
     if not os.path.exists(args.valid_dir):
         os.makedirs(args.valid_dir)
