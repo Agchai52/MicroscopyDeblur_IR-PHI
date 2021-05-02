@@ -87,7 +87,7 @@ def test(args):
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
+                save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
                       .format(img_name[0], cur_psnr, cur_ssim,
                               label, pred_label))
