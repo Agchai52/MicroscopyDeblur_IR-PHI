@@ -79,10 +79,9 @@ def test(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            _, act_num = torch.topk(label, k=1, dim=-1)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            act_num = label.squeeze(0).numpy()
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
             score = score.squeeze(0).squeeze(0).cpu().numpy()
 
