@@ -63,7 +63,6 @@ if args.phase == 'train':
         os.makedirs(args.test_dir)
     train.train(args)
     test.test(args)
-    test.test_real(args)
 
 elif args.phase == 'test':
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)

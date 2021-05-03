@@ -199,7 +199,7 @@ class Discriminator(nn.Module):
     def forward(self, img):
         feature_maps = self.e_1(img)
         b, c, h, w = feature_maps.shape
-        feature_maps = view(-1, c * h * w)  # (b, self.ndf * 2 * H/16 * H/16)
+        feature_maps = feature_maps.view(-1, c * h * w)  # (b, self.ndf * 2 * H/16 * H/16)
         scores = self.fc(feature_maps)  # (b, classes)
         return scores
 
