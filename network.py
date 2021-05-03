@@ -184,7 +184,7 @@ class Discriminator(nn.Module):
                 nn.Conv2d(c_in, c_out, k, s, p, d),
                 nn.InstanceNorm2d(c_out),
                 nn.ReLU(inplace=True),
-                Channel_Att(self.c_out),
+                Channel_Att(c_out),
             )
 
         self.input_nc = args.input_nc
