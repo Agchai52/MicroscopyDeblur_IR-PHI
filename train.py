@@ -112,8 +112,6 @@ def train(args):
             ###########################
             optimizer_D.zero_grad()
 
-            label = label.squeeze(1)
-
             # train with real
             real_label = netD(real_S)
             loss_d_real = criterion_class(real_label, label) * args.L1_lambda
