@@ -71,7 +71,7 @@ def test(args):
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S = real_B.to(device), real_S.to(device)
+            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
@@ -81,7 +81,7 @@ def test(args):
             pred_label = netD(pred_S)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            act_num = label.numpy()
+            act_num = label.cpu().numpy()
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
             score = score.squeeze(0).squeeze(0).cpu().numpy()
 
