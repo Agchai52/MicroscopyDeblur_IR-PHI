@@ -200,8 +200,8 @@ class Discriminator(nn.Module):
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/32, W/32)
                                  ConvBlock(self.ndf * 8, self.ndf * 4, stride=1),   # (B, 32 * 4, H/32, W/32)
                                  ConvBlock(self.ndf * 4, self.ndf * 2, stride=1),   # (B, 32 * 2, H/32, W/32)
-                                 ConvBlock(self.ndf * 2, self.ndf * 1, stride=1),   # (B, 32 * 2, H/32, W/32)
-                                 nn.Conv2d(self.ndf * 1, self.input_nc * 2, 1, 1),      # (B, 32 * 1, H/32, W/32)
+                                 ConvBlock(self.ndf * 2, self.ndf * 1, stride=1),   # (B, 32 * 1, H/32, W/32)
+                                 nn.Conv2d(self.ndf * 1, self.input_nc * 2, 1, 1),  # (B, 2, H/32, W/32)
                                  nn.InstanceNorm2d(self.input_nc),
                                  nn.ReLU(),
                                  )
