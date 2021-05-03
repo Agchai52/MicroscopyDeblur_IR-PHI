@@ -116,6 +116,10 @@ def train(args):
             real_label = netD(real_S)
             loss_d_real = criterion_class(real_label, label) * args.L1_lambda
 
+            print(real_label)
+            print(label)
+            exit(0)
+
             loss_d_real.backward()
             optimizer_D.step()
 
