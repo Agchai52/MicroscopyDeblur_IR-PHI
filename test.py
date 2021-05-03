@@ -81,7 +81,7 @@ def test(args):
             pred_label = netD(pred_S)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            act_num = label.squeeze(0).numpy()
+            act_num = label.numpy()
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
             score = score.squeeze(0).squeeze(0).cpu().numpy()
 

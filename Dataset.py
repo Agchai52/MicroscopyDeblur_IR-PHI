@@ -24,7 +24,7 @@ class DeblurDataset(Dataset):
 
         line = self.img_path[index]
         img_path, label = line.split('\t')
-        label = int(label)
+        label = int(label) - 1
 
         img_A = Image.open(img_path + '_blur.png').convert('L')
         img_B = Image.open(img_path + '_sharp.png').convert('L')
