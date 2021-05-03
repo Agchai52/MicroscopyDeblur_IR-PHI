@@ -190,10 +190,8 @@ class Discriminator(nn.Module):
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
                                  ConvBlock(self.ndf * 8, self.ndf * 8, stride=1),  # (B, 512, H/16, W/16)
                                  )
-        self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.classes),
-                                # nn.ReLU(inplace=True)
-                                 )
-        self.fc2 = nn.Sequential(nn.Linear(self.classes, 1),
+        self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.ndf * 4),
+                                 nn.Linear(self.ndf * 4, self.classes),
                                  nn.Sigmoid()
                                  )
 
@@ -201,9 +199,11 @@ class Discriminator(nn.Module):
         b, c, h, w = img.shape
         feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
-        fc = self.fc1(feature_maps)  # (b, classes)
-        res = self.fc2(fc) * 20  # (b, 1)
-        return res
+
+        scores = self.fc1(feature_maps)  # (b, classes)
+        scores = F.normalize(scores, dim=1, p=1)
+
+        return scores
 
 
 class Attention(nn.Module):

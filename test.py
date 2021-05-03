@@ -79,8 +79,12 @@ def test(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            label = label.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-            pred_label = pred_label.squeeze(0).cpu().numpy()
+            _, act_num = torch.topk(label, k=1, dim=-1)
+            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+
+            act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            score = score.squeeze(0).squeeze(0).cpu().numpy()
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
@@ -88,9 +92,9 @@ def test(args):
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-                print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}'
+                print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}, score = {}'
                       .format(img_name[0], cur_psnr, cur_ssim,
-                              label, pred_label))
+                              act_num + 1, pre_num + 1, score))
 
     total_time = time.time() - start_time
     ave_psnr = sum(all_psnr) / len(test_data_loader)
@@ -153,11 +157,14 @@ def test_real(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            pred_label = pred_label.squeeze(0).cpu().numpy()
+            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+
+            pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            score = score.squeeze(0).squeeze(0).cpu().numpy()
 
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-            print("Image Name: {}, predict number = {}".format(img_name[0], pred_label))
+            print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
