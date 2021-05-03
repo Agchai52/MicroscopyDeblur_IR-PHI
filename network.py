@@ -177,21 +177,35 @@ class Generator(nn.Module):
 class Discriminator(nn.Module):
     def __init__(self, args, device='cpu'):
         super(Discriminator, self).__init__()
+
+        def down(c_in, c_out, k=5, s=2, p=0, d=1):
+            return nn.Sequential(
+                nn.ReflectionPad2d([1, 2, 1, 2]),
+                nn.Conv2d(c_in, c_out, k, s, p, d),
+                nn.InstanceNorm2d(c_out),
+                nn.ReLU(inplace=True),
+                Channel_Att(self.c_out),
+            )
+
         self.input_nc = args.input_nc
         self.ndf = args.ndf
         self.load_size = args.load_size
         self.device = device
         self.classes = args.classes
-        self.e_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 32 * 1, H/2, W/2)
+
+        self.e_1 = nn.Sequential(down(self.input_nc, self.ngf * 1, 5, 2),           # (B, 32 * 1, H/2, W/2)
                                  ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 32 * 2, H/8, W/8)
                                  ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/8, W/8)
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/16, W/16)
-                                 ConvBlock(self.ndf * 8, self.ndf * 4, stride=1),   # (B, 32 * 2, H/16, W/16)
-                                 nn.Conv2d(self.ndf * 4, self.ndf * 2, 1, 1),
-                                 nn.InstanceNorm2d(self.ndf * 2),
+                                 ConvBlock(self.ndf * 8, self.ndf * 8, stride=2),   # (B, 32 * 8, H/32, W/32)
+                                 ConvBlock(self.ndf * 8, self.ndf * 4, stride=1),   # (B, 32 * 4, H/32, W/32)
+                                 ConvBlock(self.ndf * 4, self.ndf * 2, stride=1),   # (B, 32 * 2, H/32, W/32)
+                                 ConvBlock(self.ndf * 2, self.ndf * 1, stride=1),  # (B, 32 * 2, H/32, W/32)
+                                 nn.Conv2d(self.ndf * 1, self.input_nc, 1, 1),       # (B, 32 * 1, H/32, W/32)
+                                 nn.InstanceNorm2d(self.input_nc),
                                  nn.ReLU(),
                                  )
-        self.fc = nn.Sequential(nn.Linear(self.ndf * 2 * self.load_size * self.load_size // 256, self.ndf * 1),
+        self.fc = nn.Sequential(nn.Linear(self.ndf * 2, self.ndf * 1),
                                 nn.ReLU(),
                                 nn.Linear(self.ndf * 1, self.classes),
                                 )
