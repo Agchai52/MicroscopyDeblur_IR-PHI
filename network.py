@@ -180,7 +180,7 @@ class Discriminator(nn.Module):
         self.input_nc = args.input_nc
         self.ndf = args.ndf
         self.device = device
-        self.classes = args.ndf // 2
+        self.classes = args.classes
         self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
                                  ConvBlock(self.ndf * 1, self.ndf * 1, stride=1),
                                  ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 256, H/8, W/8)
