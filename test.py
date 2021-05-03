@@ -151,10 +151,10 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
+            real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
-
-            pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode="bilinear")
 
             pred_label = netD(pred_S)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
