@@ -193,7 +193,7 @@ class Discriminator(nn.Module):
         self.device = device
         self.classes = args.classes
 
-        self.e_1 = nn.Sequential(down(self.input_nc, self.ngf * 1, 5, 2),           # (B, 32 * 1, H/2, W/2)
+        self.e_1 = nn.Sequential(down(self.input_nc, self.ndf * 1, 5, 2),           # (B, 32 * 1, H/2, W/2)
                                  ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 32 * 2, H/8, W/8)
                                  ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/8, W/8)
                                  ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/16, W/16)
