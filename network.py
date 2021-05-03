@@ -194,7 +194,8 @@ class Discriminator(nn.Module):
                                 )
 
     def forward(self, img):
-        feature_maps = self.e_1(img).view(b, self.ndf * 8, -1)  # (b, self.ndf * 2, H/16 * H/16)
+        b, c, h, w = img.shape
+        feature_maps = self.e_1(img).view(b, self.ndf * 2, -1)  # (b, self.ndf * 2, H/16 * H/16)
         feature_maps = torch.mean(feature_maps, dim=-1)  # (b, self.ndf * 2)
 
         scores = self.fc(feature_maps)  # (b, classes)
