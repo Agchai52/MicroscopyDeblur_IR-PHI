@@ -154,9 +154,8 @@ def test_real(args):
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
-            # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
-            pred_label = netD(pred_S)
+            pred_label = netD(pred_S_class)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()

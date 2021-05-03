@@ -76,7 +76,7 @@ def train(args):
     netG_S2B = BlurModel(args, device)
 
     print('===> Setting up loss functions')
-    criterion_L1 = nn.L1Loss().to(device)
+    criterion_class = nn.CrossEntropyLoss().to(device)
     criterion_L2 = nn.MSELoss().to(device)
     criterion_grad = GradientLoss(device=device).to(device)
     criterion_GAN = GANLoss().to(device)
@@ -94,7 +94,7 @@ def train(args):
     for epoch in range(pre_epoch, args.epoch):
         for iteration, batch in enumerate(train_data_loader, 1):
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
+            real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
             fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
             # fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
@@ -116,7 +116,7 @@ def train(args):
 
             # train with real
             real_label = netD(real_S)
-            loss_d_real = criterion_L1(real_label, label)
+            loss_d_real = criterion_class(real_label, label) * args.L1_lambda
 
             loss_d_real.backward()
             optimizer_D.step()
@@ -130,7 +130,7 @@ def train(args):
 
             # Discriminator
             fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_L1(fake_label, label) * args.L1_lambda
+            loss_d_fake = criterion_class(fake_label, label) * args.L1_lambda
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +

@@ -179,28 +179,26 @@ class Discriminator(nn.Module):
         super(Discriminator, self).__init__()
         self.input_nc = args.input_nc
         self.ndf = args.ndf
+        self.load_size = args.load_size
         self.device = device
         self.classes = args.classes
-        self.d_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 64, H/2, W/2)
-                                 ConvBlock(self.ndf * 1, self.ndf * 1, stride=1),
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 256, H/8, W/8)
-                                 ConvBlock(self.ndf * 2, self.ndf * 2, stride=1),
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),
-                                 ConvBlock(self.ndf * 4, self.ndf * 4, stride=1),
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 512, H/16, W/16)
-                                 ConvBlock(self.ndf * 8, self.ndf * 8, stride=1),  # (B, 512, H/16, W/16)
+        self.e_1 = nn.Sequential(ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 32 * 1, H/2, W/2)
+                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 32 * 2, H/8, W/8)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/8, W/8)
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/16, W/16)
+                                 ConvBlock(self.ndf * 8, self.ndf * 2, stride=1),   # (B, 32 * 2, H/16, W/16)
                                  )
-        self.fc1 = nn.Sequential(nn.Linear(self.ndf * 8, self.ndf * 4),
-                                 nn.Linear(self.ndf * 4, self.classes),
-                                 nn.Sigmoid()
-                                 )
+        self.fc = nn.Sequential(nn.Linear(self.ndf * 2, self.ndf * 1),
+                                nn.Linear(self.ndf * 1, self.classes),
+                                nn.Sigmoid()
+                                )
 
     def forward(self, img):
-        b, c, h, w = img.shape
-        feature_maps = self.d_1(img).view(b, self.ndf * 8, -1)  # (b, 64 * 8, h/16 * w/16)
-        feature_maps = torch.mean(feature_maps, dim=-1)  # (b, c)
+        feature_maps = self.e_1(img).view(b, self.ndf * 8, -1)  # (b, self.ndf * 2, H/16 * H/16)
+        feature_maps = torch.mean(feature_maps, dim=-1)  # (b, self.ndf * 2)
 
-        scores = self.fc1(feature_maps)  # (b, classes)
+        scores = self.fc(feature_maps)  # (b, classes)
+
         scores = F.normalize(scores, dim=1, p=1)
 
         return scores
