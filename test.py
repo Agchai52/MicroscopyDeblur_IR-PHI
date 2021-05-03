@@ -154,7 +154,7 @@ def test_real(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
-            pred_label = netD(pred_S_class)
+            pred_label = netD(pred_S)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
