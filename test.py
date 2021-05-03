@@ -141,7 +141,7 @@ def test_real(args):
     ############################
     # For Real Images
     ###########################
-    image_dir = "dataset/{}/".format("real_images")
+    image_dir = "dataset/{}/".format("real_crop")
     image_filenames = [image_dir + x[0:-4] for x in os.listdir(image_dir) if x[-4:] in set([".png", ".jpg"])]
     test_data_loader = DataLoader(RealImage(image_filenames, args, False), batch_size=1, shuffle=False)
 
@@ -153,6 +153,8 @@ def test_real(args):
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
+
+            pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode="bilinear")
 
             pred_label = netD(pred_S)
             score, pre_num = torch.topk(pred_label, k=1, dim=-1)
