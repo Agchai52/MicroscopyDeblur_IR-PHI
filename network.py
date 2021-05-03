@@ -193,21 +193,21 @@ class Discriminator(nn.Module):
         self.device = device
         self.classes = args.classes
 
-        self.e_1 = nn.Sequential(down(self.input_nc, self.ndf * 1, 5, 2),           # (B, 32 * 1, H/2, W/2)
+        self.e_1 = nn.Sequential(nn.MaxPool2d(2),
+                                 ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 32 * 1, H/4, W/4)
                                  ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 32 * 2, H/8, W/8)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/8, W/8)
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/16, W/16)
-                                 ConvBlock(self.ndf * 8, self.ndf * 8, stride=2),   # (B, 32 * 8, H/32, W/32)
+                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/16, W/16)
+                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/32, W/32)
                                  ConvBlock(self.ndf * 8, self.ndf * 4, stride=1),   # (B, 32 * 4, H/32, W/32)
                                  ConvBlock(self.ndf * 4, self.ndf * 2, stride=1),   # (B, 32 * 2, H/32, W/32)
-                                 ConvBlock(self.ndf * 2, self.ndf * 1, stride=1),  # (B, 32 * 2, H/32, W/32)
-                                 nn.Conv2d(self.ndf * 1, self.input_nc, 1, 1),       # (B, 32 * 1, H/32, W/32)
+                                 ConvBlock(self.ndf * 2, self.ndf * 1, stride=1),   # (B, 32 * 2, H/32, W/32)
+                                 nn.Conv2d(self.ndf * 1, self.input_nc * 2, 1, 1),      # (B, 32 * 1, H/32, W/32)
                                  nn.InstanceNorm2d(self.input_nc),
                                  nn.ReLU(),
                                  )
-        self.fc = nn.Sequential(nn.Linear(self.ndf * 2, self.ndf * 1),
+        self.fc = nn.Sequential(nn.Linear(self.ndf * 4, self.ndf * 2),
                                 nn.ReLU(),
-                                nn.Linear(self.ndf * 1, self.classes),
+                                nn.Linear(self.ndf * 2, self.classes),
                                 )
 
     def forward(self, img):
