@@ -120,6 +120,7 @@ def train(args):
             print(label)
             print(real_label.shape)
             print(real_label)
+            print(real_label.type())
             loss_d_real = criterion_L2(real_label, label) * args.L1_lambda
 
             loss_d_real.backward()
