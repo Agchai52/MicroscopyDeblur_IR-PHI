@@ -116,8 +116,10 @@ def train(args):
 
             # train with real
             real_label = netD(real_S)
+            print(label.shape)
             print(label)
-            print(real_lable)
+            print(real_label.shape)
+            print(real_label)
             loss_d_real = criterion_L2(real_label, label) * args.L1_lambda
 
             loss_d_real.backward()
