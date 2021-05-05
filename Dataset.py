@@ -50,7 +50,7 @@ class DeblurDataset(Dataset):
         img_A = self.transform(img_A)
         img_B = self.transform(img_B)
 
-        scores = transforms.ToTensor()(scores)
+        scores = torch.tensor(scores)
 
         return img_A, img_B, scores, img_name
 
