@@ -27,7 +27,7 @@ class DeblurDataset(Dataset):
         label = int(label)
         scores = np.zeros((1, self.args.classes))
         scores[:, label - 1] = 1.
-        # scores = np.expand_dims(scores, axis=0)
+        scores = np.expand_dims(scores, axis=0)
 
         img_A = Image.open(img_path + '_blur.png').convert('L')
         img_B = Image.open(img_path + '_sharp.png').convert('L')
@@ -50,7 +50,7 @@ class DeblurDataset(Dataset):
         img_A = self.transform(img_A)
         img_B = self.transform(img_B)
 
-        scores = torch.tensor(scores)
+        scores = transforms.ToTensor()(scores)
 
         return img_A, img_B, scores, img_name
 
