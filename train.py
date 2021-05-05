@@ -116,16 +116,10 @@ def train(args):
 
             # train with real
             real_label = netD(real_S)
-            print(label.shape)
-            print(label)
-            print(real_label.shape)
-            print(real_label)
-            print(real_label.type())
             loss_d_real = criterion_L2(real_label, label) * args.L1_lambda
 
             loss_d_real.backward()
             optimizer_D.step()
-            exit()
 
             ############################
             # (2) Update G network:
