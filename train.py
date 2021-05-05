@@ -37,7 +37,7 @@ def train(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Discriminator(args, device)
+    model_D = Detector(args, device)
     model_D = nn.DataParallel(model_D)
 
     print('===> Building models')
