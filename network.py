@@ -273,7 +273,7 @@ class Detector(nn.Module):
                                 )
 
     def forward(self, img):
-        mask_map = self.e1(img)
+        mask_map = self.e_1(img)
         return mask_map
 
 
