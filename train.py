@@ -114,9 +114,14 @@ def train(args):
 
             label = label.squeeze(1).float()
 
+            threshold = -0.6
+            max_v = 1.0 * torch.ones_like(real_S)
+            min_v = 0.0 * torch.ones_like(real_S)
+            mask_real_S = torch.where(real_S <= threshold, min_v, max_v)
+
             # train with real
             real_label = netD(real_S)
-            loss_d_real = criterion_L2(real_label, label) * args.L1_lambda
+            loss_d_real = criterion_L2(real_label, mask_real_S) * args.L1_lambda
 
             loss_d_real.backward()
             optimizer_D.step()
@@ -130,7 +135,7 @@ def train(args):
 
             # Discriminator
             fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_L2(fake_label, label) * args.L1_lambda
+            loss_d_fake = criterion_L2(fake_label, mask_real_S) * args.L1_lambda
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
@@ -197,22 +202,25 @@ def train(args):
 
                     pred_label = netD(pred_S)
                     # scores = F.softmax(pred_label, dim=-1)
-                    score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-
-                    _, act_num = torch.topk(label, k=1, dim=-1)
-                    act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-                    pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-                    score = score.squeeze(0).squeeze(0).cpu().numpy()
+                    # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+                    #
+                    # _, act_num = torch.topk(label, k=1, dim=-1)
+                    # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+                    # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+                    # score = score.squeeze(0).squeeze(0).cpu().numpy()
 
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)
                     all_ssim.append(cur_ssim)
                     if img_name[0][-2:] == '01':
                         img_S = pred_S.detach().squeeze(0).cpu()
+                        img_roi = pred_label.detach().squeeze(0).cpu()
+                        img_roi = (img_roi*2-1.)
+                        save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
+
                         save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
-                        print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}, score = {}'
-                              .format(img_name[0], cur_psnr, cur_ssim,
-                                      act_num + 1, pre_num + 1, score))
+                        print('test_{}: PSNR = {} dB, SSIM = {}'
+                              .format(img_name[0], cur_psnr, cur_ssim))
 
                 PSNR_average.append(sum(all_psnr) / len(test_data_loader))
                 SSIM_average.append(sum(all_ssim) / len(test_data_loader))

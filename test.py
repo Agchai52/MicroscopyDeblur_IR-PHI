@@ -80,21 +80,23 @@ def test(args):
 
             pred_label = netD(pred_S)
             # scores = F.softmax(pred_label, dim=-1)
-            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-
-            _, act_num = torch.topk(label, k=1, dim=-1)
-            act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-            pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-            score = score.squeeze(0).squeeze(0).cpu().numpy()
+            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+            #
+            # _, act_num = torch.topk(label, k=1, dim=-1)
+            # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            # score = score.squeeze(0).squeeze(0).cpu().numpy()
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
+                img_roi = pred_label.detach().squeeze(0).cpu()
+                img_roi = (img_roi * 2 - 1.)
+                save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-                print('test_{}: PSNR = {} dB, SSIM = {}, actual number = {}, predict number = {}, score = {}'
-                      .format(img_name[0], cur_psnr, cur_ssim,
-                              act_num + 1, pre_num + 1, score))
+                print('test_{}: PSNR = {} dB, SSIM = {}'
+                      .format(img_name[0], cur_psnr, cur_ssim))
 
     total_time = time.time() - start_time
     ave_psnr = sum(all_psnr) / len(test_data_loader)
@@ -157,16 +159,16 @@ def test_real(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
-            pred_label = netD(pred_S)
+            # pred_label = netD(pred_S)
             # scores = F.softmax(pred_label, dim=-1)
-            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-
-            pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-            score = score.squeeze(0).squeeze(0).cpu().numpy()
+            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+            #
+            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            # score = score.squeeze(0).squeeze(0).cpu().numpy()
 
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-            print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
+            # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
