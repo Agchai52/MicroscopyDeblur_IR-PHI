@@ -79,13 +79,13 @@ def test(args):
             # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            scores = F.softmax(pred_label, dim=-1)
-            score, pre_num = torch.topk(scores, k=1, dim=-1)
+            # scores = F.softmax(pred_label, dim=-1)
+            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-            act_num = label.cpu().numpy()
+            _, act_num = torch.topk(label, k=1, dim=-1)
+            act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
             score = score.squeeze(0).squeeze(0).cpu().numpy()
-
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
@@ -158,8 +158,8 @@ def test_real(args):
             pred_S = pred_S[-1]
 
             pred_label = netD(pred_S)
-            scores = F.softmax(pred_label, dim=-1)
-            score, pre_num = torch.topk(scores, k=1, dim=-1)
+            # scores = F.softmax(pred_label, dim=-1)
+            score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
             pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
             score = score.squeeze(0).squeeze(0).cpu().numpy()

@@ -112,9 +112,11 @@ def train(args):
             ###########################
             optimizer_D.zero_grad()
 
+            label = label.squeeze(1)
+
             # train with real
             real_label = netD(real_S)
-            loss_d_real = criterion_class(real_label, label) * args.L1_lambda
+            loss_d_real = criterion_L2(real_label, label) * args.L1_lambda
 
             loss_d_real.backward()
             optimizer_D.step()
@@ -128,7 +130,7 @@ def train(args):
 
             # Discriminator
             fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_class(fake_label, label) * args.L1_lambda
+            loss_d_fake = criterion_L2(fake_label, label) * args.L1_lambda
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
@@ -194,10 +196,11 @@ def train(args):
                     # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
                     pred_label = netD(pred_S)
-                    scores = F.softmax(pred_label, dim=-1)
-                    score, pre_num = torch.topk(scores, k=1, dim=-1)
+                    # scores = F.softmax(pred_label, dim=-1)
+                    score, pre_num = torch.topk(pred_label, k=1, dim=-1)
 
-                    act_num = label.cpu().numpy()
+                    _, act_num = torch.topk(label, k=1, dim=-1)
+                    act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
                     pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
                     score = score.squeeze(0).squeeze(0).cpu().numpy()
 

@@ -25,6 +25,9 @@ class DeblurDataset(Dataset):
         line = self.img_path[index]
         img_path, label = line.split('\t')
         label = int(label) - 1
+        scores = np.zeros((self.args.classes, 1))
+        scores[label] = 1.
+        scores = np.expand_dims(scores, axis=0)
 
         img_A = Image.open(img_path + '_blur.png').convert('L')
         img_B = Image.open(img_path + '_sharp.png').convert('L')
@@ -47,7 +50,9 @@ class DeblurDataset(Dataset):
         img_A = self.transform(img_A)
         img_B = self.transform(img_B)
 
-        return img_A, img_B, label, img_name
+        scores = transforms.ToTensor()(scores)
+
+        return img_A, img_B, scores, img_name
 
     def __len__(self):
         return len(self.img_path)
