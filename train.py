@@ -124,6 +124,7 @@ def train(args):
 
             loss_d_real.backward()
             optimizer_D.step()
+            exit()
 
             ############################
             # (2) Update G network:
