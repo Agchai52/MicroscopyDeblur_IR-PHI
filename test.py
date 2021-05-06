@@ -144,7 +144,7 @@ def test_real(args):
     ############################
     # For Real Images
     ###########################
-    image_dir = "dataset/{}/".format("real_crop")
+    image_dir = "dataset/{}/".format("real_images")
     image_filenames = [image_dir + x[0:-4] for x in os.listdir(image_dir) if x[-4:] in set([".png", ".jpg"])]
     test_data_loader = DataLoader(RealImage(image_filenames, args, False), batch_size=1, shuffle=False)
 
