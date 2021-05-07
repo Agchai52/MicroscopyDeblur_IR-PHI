@@ -162,20 +162,20 @@ def test_real(args):
             img_roi = (img_roi * 2 - 1.)
             save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
 
-            img_S = pred_S[-1].detach().squeeze(0).cpu()
+            img_S = pred_S[2].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
             img_S = pred_S[1].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real1_'.format(args.test_dir) + img_name[0])
 
-            img_S1 = F.interpolate(pred_S[1], (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = F.interpolate(pred_S[1], (args.fine_size * 4, args.fine_size * 4), mode="bilinear")
             img_S1 = img_S1.detach().squeeze(0).cpu()
             save_img(img_S1, '{}/interp1_'.format(args.test_dir) + img_name[0])
 
             img_S = pred_S[0].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real0_'.format(args.test_dir) + img_name[0])
 
-            img_S1 = F.interpolate(pred_S[0], (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = F.interpolate(pred_S[0], (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
             img_S1 = img_S1.detach().squeeze(0).cpu()
             save_img(img_S1, '{}/interp0_'.format(args.test_dir) + img_name[0])
             # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
