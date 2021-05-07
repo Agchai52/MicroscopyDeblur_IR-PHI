@@ -68,6 +68,9 @@ def test(args):
     all_psnr = []
     all_ssim = []
     start_time = time.time()
+
+    # Gemometric Blur Model as Second Generator
+    netG_S2B = BlurModel(args, device)
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
@@ -75,26 +78,39 @@ def test(args):
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
+            recov_B = netG_S2B(pred_S[-1])
+
             pred_S = pred_S[-1]
-            # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            # scores = F.softmax(pred_label, dim=-1)
-            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-            #
-            # _, act_num = torch.topk(label, k=1, dim=-1)
-            # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-            # score = score.squeeze(0).squeeze(0).cpu().numpy()
+            real_label = netD(real_S)
+
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
             if img_name[0][-2:] == '01':
-                img_S = pred_S.detach().squeeze(0).cpu()
+
                 img_roi = pred_label.detach().squeeze(0).cpu()
                 img_roi = (img_roi * 2 - 1.)
-                save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
+                save_img(img_roi, '{}/roi_'.format(args.test_dir) + img_name[0])
+
+                img_roi = real_label.detach().squeeze(0).cpu()
+                img_roi = (img_roi * 2 - 1.)
+                save_img(img_roi, '{}/roi0_'.format(args.test_dir) + img_name[0])
+
+
+                img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
+
+                img_S = recov_B.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
+
+                img_S = real_B.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
+
+                img_S = real_S.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/sharp_'.format(args.test_dir) + img_name[0])
+                exit()
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
