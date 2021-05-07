@@ -103,7 +103,7 @@ def test(args):
                 img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
 
-                img_S = recov_B.squeeze(0).cpu()
+                img_S = recov_B[-1].detach().squeeze(0).cpu()
                 save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
 
                 img_S = real_B.squeeze(0).cpu()
