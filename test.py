@@ -102,13 +102,13 @@ def test(args):
                 img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
 
-                img_S = recov_B.detach().squeeze(0).cpu()
+                img_S = recov_B.squeeze(0).cpu()
                 save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
 
-                img_S = real_B.detach().squeeze(0).cpu()
+                img_S = real_B.squeeze(0).cpu()
                 save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
 
-                img_S = real_S.detach().squeeze(0).cpu()
+                img_S = real_S.squeeze(0).cpu()
                 save_img(img_S, '{}/sharp_'.format(args.test_dir) + img_name[0])
                 exit()
                 print('test_{}: PSNR = {} dB, SSIM = {}'
