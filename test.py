@@ -89,7 +89,7 @@ def test(args):
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
 
-            if img_name[0][-2:] == '01':
+            if img_name[0][-2:] == '02':
 
                 img_roi = pred_label.detach().squeeze(0).cpu()
                 img_roi = (img_roi * 2 - 1.)
