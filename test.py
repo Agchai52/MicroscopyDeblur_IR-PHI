@@ -88,6 +88,7 @@ def test(args):
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
+
             if img_name[0][-2:] == '01':
 
                 img_roi = pred_label.detach().squeeze(0).cpu()
