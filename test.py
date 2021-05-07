@@ -168,13 +168,15 @@ def test_real(args):
             img_S = pred_S[1].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real1_'.format(args.test_dir) + img_name[0])
 
-            img_S1 = F.interpolate(img_S, (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = F.interpolate(pred_S[1], (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = img_S1.detach().squeeze(0).cpu()
             save_img(img_S1, '{}/interp1_'.format(args.test_dir) + img_name[0])
 
             img_S = pred_S[0].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real0_'.format(args.test_dir) + img_name[0])
 
-            img_S1 = F.interpolate(img_S, (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = F.interpolate(pred_S[0], (args.fine_size, args.fine_size), mode="bilinear")
+            img_S1 = img_S1.detach().squeeze(0).cpu()
             save_img(img_S1, '{}/interp0_'.format(args.test_dir) + img_name[0])
             # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
