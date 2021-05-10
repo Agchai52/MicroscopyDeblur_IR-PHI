@@ -94,24 +94,16 @@ def train(args):
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
             real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
-            fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
+            fake_S = netG(real_B)  # (64, 64) -> (256, 256)
 
-            recov_B = netG_S2B(fake_S[-1])
-
-            real_S0 = F.interpolate(real_S, (args.fine_size * 1, args.fine_size * 1), mode="bilinear")
-            real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
-            real_S2 = real_S  # (256, 256)
+            recov_B = netG_S2B(fake_S)
             ############################
             # (1) Update G network:
             ###########################
             optimizer_G.zero_grad()
 
-            loss_l2 = (criterion_L2(fake_S[0], real_S0) +
-                       criterion_L2(fake_S[1], real_S1) +
-                       criterion_L2(fake_S[2], real_S2)) * args.L2_lambda / 3
-            loss_grad = (criterion_grad(fake_S[0], real_S0) +
-                         criterion_grad(fake_S[1], real_S1) +
-                         criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3
+            loss_l2 = criterion_L2(fake_S, real_S)  * args.L2_lambda
+            loss_grad = (criterion_grad(fake_S, real_S)) * args.L2_lambda / 3
 
             loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda * 2
 
@@ -165,7 +157,6 @@ def train(args):
                     # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
-                    pred_S = pred_S[-1]
 
                     pred_label = netD(pred_S)
 

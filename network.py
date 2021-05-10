@@ -162,16 +162,9 @@ class Generator(nn.Module):
 
         d_layer1 = torch.cat([e_layer1, d_layer1], 1)
         d_layer2 = self.d2(d_layer1)
-        return d_layer2
 
-    def __call__(self, x):
-        b, c, h, w = x.shape
-        x1 = self.forward(x)
-        y1 = F.interpolate(x1, (h * 2, w * 2), mode="bilinear")
-        x2 = self.forward(y1)
-        y2 = F.interpolate(x2, (h * 4, w * 4), mode="bilinear")
-        x3 = self.forward(y2)
-        return list([x1, x2, x3])
+        d_layer2 = F.interpolate(d_layer2, (self.load_size, self.load_size), mode="bilinear")
+        return d_layer2
 
 
 class Classifier(nn.Module):

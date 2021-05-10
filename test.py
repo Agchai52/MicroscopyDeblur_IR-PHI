@@ -76,7 +76,6 @@ def test(args):
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
-            pred_S = pred_S[-1]
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
@@ -149,7 +148,7 @@ def test_real(args):
 
             pred_S = netG(real_B)
 
-            img_S = pred_S[2].detach().squeeze(0).cpu()
+            img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
     total_time = time.time() - start_time
