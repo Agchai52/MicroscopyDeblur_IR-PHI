@@ -184,7 +184,6 @@ class Classifier(nn.Module):
                 nn.Conv2d(c_in, c_out, k, s, p, d),
                 nn.InstanceNorm2d(c_out),
                 nn.ReLU(inplace=True),
-                Channel_Att(c_out),
             )
 
         def up(c_in, c_out, k=3, s=2):
@@ -192,7 +191,6 @@ class Classifier(nn.Module):
                 nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s, padding=1, output_padding=1),
                 nn.InstanceNorm2d(c_out),
                 nn.ReLU(inplace=True),
-                Channel_Att(c_out)
             )
 
         self.input_nc = args.input_nc
@@ -255,7 +253,6 @@ class ConvBlock(nn.Module):
                           padding_mode='circular'),
                 nn.InstanceNorm2d(self.c_out),
                 nn.ReLU(inplace=True),
-                Channel_Att(self.c_out),
             )
         elif stride == 2:
             if cha_att:
@@ -265,7 +262,6 @@ class ConvBlock(nn.Module):
                               padding_mode='circular'),
                     nn.InstanceNorm2d(self.c_out),
                     nn.ReLU(inplace=True),
-                    Channel_Att(self.c_out),
                 )
             else:
                 self.model = nn.Sequential(
