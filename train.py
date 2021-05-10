@@ -115,7 +115,7 @@ def train(args):
 
             loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda * 2
 
-            loss_g = loss_l2 + loss_grad + loss_recover
+            loss_g = loss_l2 + loss_grad
 
             loss_g.backward()
             optimizer_G.step()
