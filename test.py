@@ -21,7 +21,7 @@ def test(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Classifier(args, device)
+    model_D = Detector(args, device)
     model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
@@ -68,7 +68,6 @@ def test(args):
     all_psnr = []
     all_ssim = []
     start_time = time.time()
-
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
@@ -77,15 +76,25 @@ def test(args):
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
+            # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
+            pred_label = netD(pred_S)
+            # scores = F.softmax(pred_label, dim=-1)
+            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+            #
+            # _, act_num = torch.topk(label, k=1, dim=-1)
+            # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
+            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            # score = score.squeeze(0).squeeze(0).cpu().numpy()
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
-
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
+                img_roi = pred_label.detach().squeeze(0).cpu()
+                img_roi = (img_roi * 2 - 1.)
+                save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
@@ -106,7 +115,7 @@ def test_real(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Classifier(args, device)
+    model_D = Detector(args, device)
     model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
@@ -135,7 +144,7 @@ def test_real(args):
     ############################
     # For Real Images
     ###########################
-    image_dir = "dataset/{}/".format("real_images")
+    image_dir = "dataset/{}/".format("real_crop")
     image_filenames = [image_dir + x[0:-4] for x in os.listdir(image_dir) if x[-4:] in set([".png", ".jpg"])]
     test_data_loader = DataLoader(RealImage(image_filenames, args, False), batch_size=1, shuffle=False)
 
@@ -145,11 +154,20 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
+            real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+
             pred_S = netG(real_B)
+            pred_S = pred_S[-1]
 
-            img_S = pred_S[2].detach().squeeze(0).cpu()
+            # pred_label = netD(pred_S)
+            # scores = F.softmax(pred_label, dim=-1)
+            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
+            #
+            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
+            # score = score.squeeze(0).squeeze(0).cpu().numpy()
+
+            img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-
             # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
