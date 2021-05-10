@@ -114,7 +114,7 @@ def train(args):
 
             label = label.squeeze(1).float()
 
-            threshold = -0.2
+            threshold = 0.5 * 2 - 1.0
             max_v = 1.0 * torch.ones_like(real_S)
             min_v = 0.0 * torch.ones_like(real_S)
             mask_real_S = torch.where(real_S <= threshold, min_v, max_v)
