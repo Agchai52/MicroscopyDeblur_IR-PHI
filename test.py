@@ -21,7 +21,7 @@ def test(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Detector(args, device)
+    model_D = Classifier(args, device)
     model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
@@ -76,16 +76,9 @@ def test(args):
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
-            # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
             pred_label = netD(pred_S)
-            # scores = F.softmax(pred_label, dim=-1)
-            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-            #
-            # _, act_num = torch.topk(label, k=1, dim=-1)
-            # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-            # score = score.squeeze(0).squeeze(0).cpu().numpy()
+
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
@@ -115,7 +108,7 @@ def test_real(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Detector(args, device)
+    model_D = Classifier(args, device)
     model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
@@ -159,16 +152,8 @@ def test_real(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
-            # pred_label = netD(pred_S)
-            # scores = F.softmax(pred_label, dim=-1)
-            # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-            #
-            # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-            # score = score.squeeze(0).squeeze(0).cpu().numpy()
-
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-            # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)

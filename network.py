@@ -87,20 +87,6 @@ class Generator(nn.Module):
     def __init__(self, args, device='cpu'):
         super(Generator, self).__init__()
 
-        def down(c_in, c_out, k=3, s=2, p=0, d=1):
-            return nn.Sequential(
-                nn.ReflectionPad2d([0, 1, 0, 1]),
-                nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True),
-                Channel_Att(c_out)
-            )
-
-        def up(c_in, c_out, k=2, s=2):
-            return nn.Sequential(
-                nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s),
-                nn.SELU(inplace=True),
-                Channel_Att(c_out)
-            )
-
         self.input_nc = args.input_nc
         self.ngf = args.ngf
         self.device = device
@@ -132,24 +118,6 @@ class Generator(nn.Module):
                                           padding_mode='circular'),  # (B, 1, H, W)
                                 nn.Tanh())
 
-        # self.in_net1 = nn.Sequential(
-        #     nn.Conv2d(self.input_nc, self.ngf, 3, 1, 1),
-        #     nn.SELU(inplace=True),
-        # )
-        #
-        # self.in_net2 = down(self.ngf * 1, self.ngf * 2)
-        # self.in_net3 = down(self.ngf * 2, self.ngf * 4)
-        #
-        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
-        #
-        # self.up_net1 = up(self.ngf * 4, self.ngf * 2)
-        # self.up_net2 = up(self.ngf * 2, self.ngf * 1)
-        #
-        # self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
-
     def forward(self, img):
         # Encoder
         e_layer1 = self.e1(img)
@@ -174,62 +142,9 @@ class Generator(nn.Module):
         return list([x1, x2, x3])
 
 
-class Discriminator(nn.Module):
+class Classifier(nn.Module):
     def __init__(self, args, device='cpu'):
-        super(Discriminator, self).__init__()
-
-        def down(c_in, c_out, k=3, s=2, p=0, d=1):
-            return nn.Sequential(
-                nn.ReflectionPad2d([0, 1, 0, 1]),
-                nn.Conv2d(c_in, c_out, k, s, p, d),
-                nn.InstanceNorm2d(c_out),
-                nn.ReLU(inplace=True),
-                Channel_Att(c_out),
-            )
-
-        def up(c_in, c_out, k=3, s=2):
-            return nn.Sequential(
-                nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s, padding=1, output_padding=1),
-                nn.InstanceNorm2d(c_out),
-                nn.ReLU(inplace=True),
-                Channel_Att(c_out)
-            )
-
-        self.input_nc = args.input_nc
-        self.ndf = args.ndf
-        self.load_size = args.load_size
-        self.device = device
-        self.classes = args.classes
-
-        self.e_1 = nn.Sequential(
-                                 ConvBlock(self.input_nc, self.ndf * 1, stride=2),  # (B, 32 * 1, H/4, W/4)
-                                 ConvBlock(self.ndf * 1, self.ndf * 2, stride=2),   # (B, 32 * 2, H/8, W/8)
-                                 ConvBlock(self.ndf * 2, self.ndf * 4, stride=2),   # (B, 32 * 4, H/16, W/16)
-                                 ConvBlock(self.ndf * 4, self.ndf * 8, stride=2),   # (B, 32 * 8, H/32, W/32)
-                                 ConvBlock(self.ndf * 8, self.ndf * 4),   # (B, 32 * 4, H/32, W/32)
-                                 ConvBlock(self.ndf * 4, self.ndf * 2),   # (B, 32 * 2, H/32, W/32)
-                                 ConvBlock(self.ndf * 2, self.ndf * 1),   # (B, 32 * 1, H/32, W/32)
-                                 nn.Conv2d(self.ndf * 1, self.input_nc * 2, 1, 1),  # (B, 2, H/32, W/32)
-                                 nn.InstanceNorm2d(self.input_nc),
-                                 nn.ReLU(),
-                                 )
-        self.fc = nn.Sequential(nn.Linear(self.ndf * 4, self.ndf * 2),
-                                nn.ReLU(),
-                                nn.Linear(self.ndf * 2, self.classes),
-                                nn.Softmax()
-                                )
-
-    def forward(self, img):
-        feature_maps = self.e_1(img)
-        b, c, h, w = feature_maps.shape
-        feature_maps = feature_maps.view(-1, c * h * w)  # (b, self.ndf * 2 * H/16 * H/16)
-        scores = self.fc(feature_maps)  # (b, classes)
-        return scores
-
-
-class Detector(nn.Module):
-    def __init__(self, args, device='cpu'):
-        super(Detector, self).__init__()
+        super(Classifier, self).__init__()
 
         def down(c_in, c_out, k=3, s=2, p=0, d=1):
             return nn.Sequential(
@@ -277,31 +192,6 @@ class Detector(nn.Module):
         return mask_map
 
 
-class Attention(nn.Module):
-    def __init__(self, ch):
-        super(Attention, self).__init__()
-        self.ch = ch
-        self.conv2d_f = nn.Conv2d(self.ch, self.ch // 2, 1, 1)
-        self.conv2d_g = nn.Conv2d(self.ch, self.ch // 2, 1, 1)
-        self.conv2d_h = nn.Conv2d(self.ch, self.ch, 1, 1)
-        self.gamma = nn.Parameter(torch.Tensor([0.0]), requires_grad=True)
-
-    def forward(self, x):
-        b, _, height, width = x.shape
-        f = self.conv2d_f(x).view(b, self.ch // 2, -1)   # (b, ch/2, h*w)
-        g = self.conv2d_g(x).view(b, self.ch // 2, -1)
-        g = g.permute(0, 2, 1)                           # (b, h*w, ch/2)
-        h = self.conv2d_h(x).view(b, self.ch, -1)
-        h = h.permute(0, 2, 1)                           # (b, h*w, ch)
-
-        s = torch.matmul(g, f)                           # (b, h*w, h*w)
-        beta = F.softmax(s, dim=-1)                      # (b, h*w, h*w)
-        o = torch.matmul(beta, h)                        # (b, h*w, ch)
-        o = o.permute(0, 2, 1).view(b, self.ch, height, width)
-        o = self.gamma * o + x
-        return o
-
-
 class Channel_Att(nn.Module):
     def __init__(self, channel, reduction=16):
         super(Channel_Att, self).__init__()
@@ -319,24 +209,6 @@ class Channel_Att(nn.Module):
         y = self.avg_pool(x)
         y = self.conv_du(y)
         return x * y
-
-
-class ResBlock(nn.Module):
-    def __init__(self, c_in, c_out, k_size=3):
-        super(ResBlock, self).__init__()
-        self.res_net = nn.Sequential(
-            nn.ReflectionPad2d((1, 1, 1, 1)),
-            nn.Conv2d(c_in, c_out, kernel_size=k_size, stride=1),
-            nn.SELU(inplace=True),
-            nn.ReflectionPad2d((1, 1, 1, 1)),
-            nn.Conv2d(c_in, c_out, kernel_size=k_size, stride=1),
-            nn.SELU(inplace=True),
-        )
-
-    def forward(self, x):
-        x1 = self.res_net(x)
-        x2 = x + x1
-        return x2
 
 
 class ConvBlock(nn.Module):
@@ -376,64 +248,6 @@ class ConvBlock(nn.Module):
 
     def forward(self, maps):
         return self.model(maps)
-
-
-class GANLoss(nn.Module):
-    def __init__(self, target_real_label=1.0, target_fake_label=0.0):
-        super(GANLoss, self).__init__()
-        self.register_buffer('real_label', torch.tensor(target_real_label))
-        self.register_buffer('fake_label', torch.tensor(target_fake_label))
-
-        self.loss = nn.MSELoss()
-
-    def get_target_tensor(self, image, target_is_real):
-        if target_is_real:
-            target_tensor = self.real_label
-        else:
-            target_tensor = self.fake_label
-        return target_tensor.expand_as(image)
-
-    def __call__(self, img, target_is_real):
-        target_tensor = self.get_target_tensor(img, target_is_real)
-        loss = self.loss(img, target_tensor)
-        return loss
-
-
-class DarkChannelLoss(nn.Module):
-    def __init__(self, kernel_size=15):
-        super(DarkChannelLoss, self).__init__()
-        self.loss = nn.MSELoss()
-        self.kernel_size = kernel_size
-        self.pad_size = (self.kernel_size - 1) // 2
-        self.unfold = nn.Unfold(self.kernel_size)
-
-    def forward(self, x):
-        # x : (B, 3, H, W), in [-1, 1]
-        x = (x + 1.0) / 2.0
-        H, W = x.size()[2], x.size()[3]
-
-        # Minimum among three channels
-        x, _ = x.min(dim=1, keepdim=True)  # (B, 1, H, W)
-        x = nn.ReflectionPad2d(self.pad_size)(x)  # (B, 1, H+2p, W+2p)
-        x = self.unfold(x)  # (B, k*k, H*W)
-        x = x.unsqueeze(1)  # (B, 1, k*k, H*W)
-
-        # Minimum in (k, k) patch
-        dark_map, _ = x.min(dim=2, keepdim=False)  # (B, 1, H*W)
-        x = dark_map.view(-1, 1, H, W)
-
-        # Count Zeros
-        #y0 = torch.zeros_like(x)
-        #y1 = torch.ones_like(x)
-        #x = torch.where(x < 0.1, y0, y1)
-        #x = torch.sum(x)
-        #x = int(H * W - x)
-        return x.clamp(min=0.0, max=1.0)
-
-    def __call__(self, real, fake):
-        real_map = self.forward(real)
-        fake_map = self.forward(fake)
-        return self.loss(real_map, fake_map)
 
 
 class GradientLoss(nn.Module):
