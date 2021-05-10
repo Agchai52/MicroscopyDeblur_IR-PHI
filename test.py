@@ -154,7 +154,7 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
-            real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+            #real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
