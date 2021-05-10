@@ -145,12 +145,12 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
+            real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+
             pred_S = netG(real_B)
 
             img_S = pred_S[2].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-
-            # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
