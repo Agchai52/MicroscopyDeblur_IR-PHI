@@ -102,34 +102,9 @@ def train(args):
             real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
             real_S2 = real_S  # (256, 256)
             ############################
-            # (1) Update D network:
-            ###########################
-            optimizer_D.zero_grad()
-
-            label = label.squeeze(1).float()
-
-            threshold = -0.6
-            max_v = 1.0 * torch.ones_like(real_S)
-            min_v = 0.0 * torch.ones_like(real_S)
-            mask_real_S = torch.where(real_S <= threshold, min_v, max_v)
-
-            # train with real
-            real_label = netD(real_S)
-            loss_d_real = criterion_L2(real_label, mask_real_S) * args.L1_lambda
-
-            loss_d_real.backward()
-            optimizer_D.step()
-
-            ############################
-            # (2) Update G network:
+            # (1) Update G network:
             ###########################
             optimizer_G.zero_grad()
-
-            # real_B = F.interpolate(real_B, (args.load_size, args.load_size), mode="bilinear")
-
-            # Discriminator
-            fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_L2(fake_label, mask_real_S) * args.L1_lambda
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
@@ -140,7 +115,7 @@ def train(args):
 
             loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda * 2
 
-            loss_g = loss_l2 + loss_grad + loss_recover + loss_d_fake
+            loss_g = loss_l2 + loss_grad + loss_recover
 
             loss_g.backward()
             optimizer_G.step()
@@ -148,13 +123,12 @@ def train(args):
             counter += 1
 
             print(
-                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} Loss_d_real: {:.4f} "
-                "Loss_d_fake: {:.4f}".format(
+                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} ".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_d_real.item(), loss_d_fake.item()))
+                    loss_grad.item(), loss_l2.item(), loss_recover.item()))
 
             # To record losses in a .txt file
-            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item(), loss_d_real.item(), loss_d_fake.item()]
+            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
             losses_dg_str = " ".join(str(v) for v in losses_dg)
 
             with open(loss_record, 'a+') as file:
