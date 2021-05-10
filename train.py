@@ -97,11 +97,7 @@ def train(args):
             real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
             fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
-            # fake_B = netG_S2B(real_S)  # (256, 256) -> [0](64, 64) [1](128, 128) [2](256, 256)
 
-            # fake_B = F.interpolate(fake_B, (args.fine_size, args.fine_size), mode="bilinear")
-
-            # recov_S = netG(fake_B[0])
             recov_B = netG_S2B(fake_S[-1])
 
             real_S0 = F.interpolate(real_S, (args.fine_size * 1, args.fine_size * 1), mode="bilinear")
@@ -198,16 +194,8 @@ def train(args):
 
                     pred_S = netG(real_B)
                     pred_S = pred_S[-1]
-                    # pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode='bilinear')
 
                     pred_label = netD(pred_S)
-                    # scores = F.softmax(pred_label, dim=-1)
-                    # score, pre_num = torch.topk(pred_label, k=1, dim=-1)
-                    #
-                    # _, act_num = torch.topk(label, k=1, dim=-1)
-                    # act_num = act_num.squeeze(0).squeeze(0).squeeze(0).cpu().numpy()
-                    # pre_num = pre_num.squeeze(0).squeeze(0).cpu().numpy()
-                    # score = score.squeeze(0).squeeze(0).cpu().numpy()
 
                     cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
                     all_psnr.append(cur_psnr)

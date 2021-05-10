@@ -69,8 +69,6 @@ def test(args):
     all_ssim = []
     start_time = time.time()
 
-    # Gemometric Blur Model as Second Generator
-    netG_S2B = BlurModel(args, device)
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
@@ -78,40 +76,16 @@ def test(args):
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
-            recov_B = netG_S2B(pred_S[-1])
-
             pred_S = pred_S[-1]
-
-            pred_label = netD(pred_S)
-            real_label = netD(real_S)
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
 
-            if img_name[0][-2:] == '02':
-
-                img_roi = pred_label.detach().squeeze(0).cpu()
-                img_roi = (img_roi * 2 - 1.)
-                save_img(img_roi, '{}/roi_'.format(args.test_dir) + img_name[0])
-
-                img_roi = real_label.detach().squeeze(0).cpu()
-                img_roi = (img_roi * 2 - 1.)
-                save_img(img_roi, '{}/roi0_'.format(args.test_dir) + img_name[0])
-
-
+            if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
 
-                img_S = recov_B[-1].detach().squeeze(0).cpu()
-                save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
-
-                img_S = real_B.squeeze(0).cpu()
-                save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
-
-                img_S = real_S.squeeze(0).cpu()
-                save_img(img_S, '{}/sharp_'.format(args.test_dir) + img_name[0])
-                exit()
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
@@ -173,28 +147,9 @@ def test_real(args):
 
             pred_S = netG(real_B)
 
-            pred_label = netD(pred_S[-1])
-
-            img_roi = pred_label.detach().squeeze(0).cpu()
-            img_roi = (img_roi * 2 - 1.)
-            save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
-
             img_S = pred_S[2].detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
-            img_S = pred_S[1].detach().squeeze(0).cpu()
-            save_img(img_S, '{}/real1_'.format(args.test_dir) + img_name[0])
-
-            img_S1 = F.interpolate(pred_S[1], (args.fine_size * 4, args.fine_size * 4), mode="bilinear")
-            img_S1 = img_S1.detach().squeeze(0).cpu()
-            save_img(img_S1, '{}/interp1_'.format(args.test_dir) + img_name[0])
-
-            img_S = pred_S[0].detach().squeeze(0).cpu()
-            save_img(img_S, '{}/real0_'.format(args.test_dir) + img_name[0])
-
-            img_S1 = F.interpolate(pred_S[0], (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
-            img_S1 = img_S1.detach().squeeze(0).cpu()
-            save_img(img_S1, '{}/interp0_'.format(args.test_dir) + img_name[0])
             # print("Image Name: {}, predict number = {}, score = {}".format(img_name[0], pre_num + 1, score))
 
     total_time = time.time() - start_time
