@@ -76,10 +76,8 @@ def train(args):
     netG_S2B = BlurModel(args, device)
 
     print('===> Setting up loss functions')
-    criterion_class = nn.CrossEntropyLoss().to(device)
     criterion_L2 = nn.MSELoss().to(device)
     criterion_grad = GradientLoss(device=device).to(device)
-    criterion_GAN = GANLoss().to(device)
 
     counter = 0
     PSNR_average = []
