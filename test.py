@@ -77,7 +77,7 @@ def test(args):
 
             pred_S = netG(real_B)
 
-            pred_S = F.interpolate(pred_S, (self.load_size, self.load_size), mode="bilinear")
+            pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode="bilinear")
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
@@ -150,7 +150,7 @@ def test_real(args):
 
             pred_S = netG(real_B)
 
-            pred_S = F.interpolate(pred_S, (self.load_size, self.load_size), mode="bilinear")
+            pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode="bilinear")
 
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])

@@ -156,7 +156,7 @@ def train(args):
 
                     pred_S = netG(real_B)
 
-                    pred_S = F.interpolate(pred_S, (self.load_size, self.load_size), mode="bilinear")
+                    pred_S = F.interpolate(pred_S, (args.load_size, args.load_size), mode="bilinear")
 
                     pred_label = netD(pred_S)
 
