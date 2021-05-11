@@ -163,7 +163,6 @@ class Generator(nn.Module):
         d_layer1 = torch.cat([e_layer1, d_layer1], 1)
         d_layer2 = self.d2(d_layer1)
 
-        d_layer2 = F.interpolate(d_layer2, (self.load_size, self.load_size), mode="bilinear")
         return d_layer2
 
 

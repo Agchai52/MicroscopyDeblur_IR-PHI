@@ -94,7 +94,7 @@ def train(args):
             real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
             real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
-            fake_S = netG(real_B)  # (64, 64) -> (256, 256)
+            fake_S = netG(real_B)  # (64, 64)
 
             recov_B = netG_S2B(fake_S)
             ############################
@@ -157,6 +157,8 @@ def train(args):
                     # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
+
+                    pred_S = F.interpolate(pred_S, (self.load_size, self.load_size), mode="bilinear")
 
                     pred_label = netD(pred_S)
 
