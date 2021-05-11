@@ -96,16 +96,14 @@ def train(args):
 
             fake_S = netG(real_B)  # (64, 64)
 
-            recov_B = netG_S2B(fake_S)
+            # recov_B = netG_S2B(fake_S)
             ############################
             # (1) Update G network:
             ###########################
             optimizer_G.zero_grad()
 
-            loss_l2 = criterion_L2(fake_S, real_S)  * args.L2_lambda
-            loss_grad = (criterion_grad(fake_S, real_S)) * args.L2_lambda / 3
-
-            loss_recover = criterion_L2(recov_B[0], real_B) * args.L2_lambda * 2
+            loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
+            loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
 
             loss_g = loss_l2 + loss_grad
 
