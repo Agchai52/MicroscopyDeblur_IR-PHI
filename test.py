@@ -147,13 +147,16 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
-            # real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+            real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
+
+            img_S = real_B.detach().squeeze(0).cpu()
+            save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
