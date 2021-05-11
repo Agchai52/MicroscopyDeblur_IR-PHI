@@ -74,7 +74,7 @@ def plot_losses():
     plt.figure()
     plt.plot(losses_dg[0:-1:100, 0], 'b-', label='grad_loss')
     plt.plot(losses_dg[0:-1:100, 1], 'r--', label='l2_loss')
-    plt.plot(losses_dg[0:-1:100, 2], 'g-', label='recover_loss')
+    # plt.plot(losses_dg[0:-1:100, 2], 'g-', label='recover_loss')
     #plt.plot(losses_dg[0:-1:100, 3], 'y-', label='d_real_loss')
     #plt.plot(losses_dg[0:-1:100, 4], 'k-', label='d_fake_loss')
     plt.xlabel("iteration*100")

@@ -113,12 +113,12 @@ def train(args):
             counter += 1
 
             print(
-                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f} Loss_Recover: {:.4f} ".format(
+                "===> Epoch[{}]({}/{}): Loss_Grad: {:.4f} Loss_L2: {:.4f}".format(
                     epoch, iteration, len(train_data_loader),
-                    loss_grad.item(), loss_l2.item(), loss_recover.item()))
+                    loss_grad.item(), loss_l2.item()))
 
             # To record losses in a .txt file
-            losses_dg = [loss_grad.item(), loss_l2.item(), loss_recover.item()]
+            losses_dg = [loss_grad.item(), loss_l2.item()]
             losses_dg_str = " ".join(str(v) for v in losses_dg)
 
             with open(loss_record, 'a+') as file:
