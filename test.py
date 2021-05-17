@@ -78,7 +78,7 @@ def test(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
-            recov_B = netG_S2B(pred_S)
+            recov_B = netG_S2B(real_S)
             recov_B = recov_B[0]
 
             pred_label = netD(pred_S)
