@@ -95,6 +95,10 @@ def test(args):
 
                 img_S = recov_B.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
+
+                real_S_0 = F.interpolate(real_S, (args.fine_size, args.fine_size), mode="bilinear")
+                img_S = real_S_0.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/sharp_'.format(args.test_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
