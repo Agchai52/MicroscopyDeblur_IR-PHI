@@ -92,7 +92,7 @@ def train(args):
     for epoch in range(pre_epoch, args.epoch):
         for iteration, batch in enumerate(train_data_loader, 1):
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
-            real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
+            real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 256, 256)
 
             fake_S = netG(real_B)  # (64, 64) -> [0](64, 64) [1](128, 128) [2](256, 256)
 
@@ -102,9 +102,9 @@ def train(args):
             real_S1 = F.interpolate(real_S, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
             real_S2 = real_S  # (256, 256)
 
-            real_B0 = F.interpolate(real_B, (args.fine_size * 1, args.fine_size * 1), mode="bilinear")
+            real_B0 = real_B  # (64, 64)
             real_B1 = F.interpolate(real_B, (args.fine_size * 2, args.fine_size * 2), mode="bilinear")
-            real_B2 = real_B  # (256, 256)
+            real_B2 = F.interpolate(real_B, (args.fine_size * 4, args.fine_size * 4), mode="bilinear")  # (256, 256)
             ############################
             # (1) Update D network:
             ###########################
