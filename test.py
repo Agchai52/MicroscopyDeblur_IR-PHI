@@ -166,8 +166,8 @@ def test_real(args):
             img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
 
-            img_S = real_B.detach().squeeze(0).cpu()
-            save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
+            # img_S = real_B.detach().squeeze(0).cpu()
+            # save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
