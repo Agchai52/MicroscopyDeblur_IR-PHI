@@ -68,6 +68,7 @@ def test(args):
     all_psnr = []
     all_ssim = []
     start_time = time.time()
+    netG_S2B = BlurModel(args, device)
     with torch.no_grad():
         for batch in test_data_loader:
             real_B, real_S, img_name = batch[0], batch[1], batch[2]
@@ -77,17 +78,23 @@ def test(args):
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
+            recov_B = netG_S2B(pred_S)
+            recov_B = recov_B[0]
+
             pred_label = netD(pred_S)
 
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
-            if img_name[0][-2:] == '01':
+            if img_name[0][-2:] == '02':
                 img_S = pred_S.detach().squeeze(0).cpu()
                 img_roi = pred_label.detach().squeeze(0).cpu()
                 img_roi = (img_roi * 2 - 1.)
                 save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
+
+                img_S = recov_B.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
