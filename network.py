@@ -73,7 +73,7 @@ class BlurModel(nn.Module):
 
     def __call__(self, x):
         b, c, h, w = x.shape
-        y1 = self.forward(x1)
+        y1 = self.forward(x)
         y2 = F.interpolate(y1, (h // 2, w // 2), mode="bilinear")
         y3 = F.interpolate(y1, (h // 4, w // 4), mode="bilinear")
 
