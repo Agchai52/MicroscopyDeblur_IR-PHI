@@ -86,20 +86,19 @@ def test(args):
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
-            if img_name[0][-2:] == '02':
+            if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
                 img_roi = pred_label.detach().squeeze(0).cpu()
                 img_roi = (img_roi * 2 - 1.)
                 save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-
-                img_S = recov_B.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
-
-                real_B0 = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
-                img_S = real_B0.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
-                exit()
+                # img_S = recov_B.detach().squeeze(0).cpu()
+                # save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
+                #
+                # real_B0 = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+                # img_S = real_B0.detach().squeeze(0).cpu()
+                # save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
+                # exit()
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
