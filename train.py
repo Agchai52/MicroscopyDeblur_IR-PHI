@@ -131,6 +131,8 @@ def train(args):
             fake_label = netD(fake_S[2])
             loss_d_fake = criterion_L2(fake_label, mask_real_S) * args.L1_lambda
 
+            real_label = netD(real_B)
+
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
                        criterion_L2(fake_S[2], real_S2)) * args.L2_lambda / 3
@@ -138,7 +140,7 @@ def train(args):
                          criterion_grad(fake_S[1], real_S1) +
                          criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3
 
-            loss_recover = (criterion_L2(recov_B[0], real_B0)) * args.L2_lambda
+            loss_recover = (criterion_L2(recov_B[0], real_B0 * real_label)) * args.L2_lambda
 
             loss_g = loss_l2 + loss_grad + loss_recover + loss_d_fake
 
