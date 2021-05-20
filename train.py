@@ -129,7 +129,7 @@ def train(args):
 
             # Classifier
             fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_L2(fake_label, mask_real_S) * args.L1_lambda
+            loss_d_fake = criterion_L2(fake_label, real_label.detach()) * args.L1_lambda
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
