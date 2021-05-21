@@ -110,14 +110,14 @@ def train(args):
             ###########################
             optimizer_D.zero_grad()
 
-            threshold = 0.3 * 2 - 1.0
+            threshold = 0.2 * 2 - 1.0
             max_v = 1.0 * torch.ones_like(real_S)
             min_v = 0.0 * torch.ones_like(real_S)
             mask_real_S = torch.where(real_S <= threshold, min_v, max_v)
 
             # train with real
             real_label = netD(real_S)
-            loss_d_real = criterion_L2(real_label, mask_real_S) * args.L1_lambda
+            loss_d_real = criterion_L2(real_label, mask_real_S) * 100
 
             loss_d_real.backward()
             optimizer_D.step()
@@ -129,14 +129,14 @@ def train(args):
 
             # Classifier
             fake_label = netD(fake_S[2])
-            loss_d_fake = criterion_L2(fake_label, real_label.detach()) * args.L1_lambda
+            loss_d_fake = criterion_L2(fake_label, real_label.detach()) * 1000
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
                        criterion_L2(fake_S[2], real_S2)) * args.L2_lambda / 3
             loss_grad = (criterion_grad(fake_S[0], real_S0) +
                          criterion_grad(fake_S[1], real_S1) +
-                         criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3
+                         criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3 / 2
 
             loss_recover = (criterion_L2(recov_B[0], real_B0)) * args.L2_lambda * 2
 
