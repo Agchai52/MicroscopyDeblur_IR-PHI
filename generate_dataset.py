@@ -103,7 +103,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
     :return: a sharp image with beans, number of beans
     """
 
-    bean_size = bean_size * np.random.uniform(low=0.5, high=4.5)
+    bean_size = bean_size * np.int(np.floor(np.random.uniform(low=0.5, high=4.5)))
     bean_num = np.random.randint(low=bean_min, high=bean_max)
     bean_locs = []
     for i in range(bean_num):
@@ -302,7 +302,8 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
 if __name__ == "__main__":
     """
     Example:
-        python generate_dataset.py --phase train --num_imgs 5
+        python generate_dataset.py --phase train --num_imgs 2000
+        python generate_dataset.py --phase test --num_imgs 500
     """
     args = parser.parse_args()
 
