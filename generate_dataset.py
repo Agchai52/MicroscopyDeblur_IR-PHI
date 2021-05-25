@@ -273,6 +273,7 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
 
         cv2.imwrite(name_sharp, sharp)
         cv2.imwrite(name_blur, blurry_noisy)
+        print(i+1)
 
         if is_label:
             f_original.write(name_folder + '/' + name_prefix + "\t" + str(label) + "\r\n")
