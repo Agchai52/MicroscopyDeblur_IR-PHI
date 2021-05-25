@@ -103,7 +103,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
     :return: a sharp image with beans, number of beans
     """
 
-    bean_size = bean_size * np.random.randint(low=1, high=5)
+    bean_size = bean_size * np.random.uniform(low=0.5, high=5)
     bean_num = np.random.randint(low=bean_min, high=bean_max)
     bean_locs = []
     for i in range(bean_num):
