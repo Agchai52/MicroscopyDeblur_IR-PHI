@@ -133,10 +133,10 @@ def train(args):
 
             loss_l2 = (criterion_L2(fake_S[0], real_S0) +
                        criterion_L2(fake_S[1], real_S1) +
-                       criterion_L2(fake_S[2], real_S2)) * args.L2_lambda / 3
+                       criterion_L2(fake_S[2], real_S2)) * args.L2_lambda
             loss_grad = (criterion_grad(fake_S[0], real_S0) +
                          criterion_grad(fake_S[1], real_S1) +
-                         criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 3 / 2
+                         criterion_grad(fake_S[2], real_S2)) * args.L2_lambda / 2
 
             loss_recover = (criterion_L2(recov_B[0], real_B0)) * args.L2_lambda * 10
 
