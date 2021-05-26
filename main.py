@@ -18,7 +18,7 @@ parser.add_argument('--dataset_name', dest='dataset_name', default='DeblurMicroc
 parser.add_argument('--epoch', dest='epoch', type=int, default=10, help='# of training epochs')
 parser.add_argument('--epoch_start', dest='epoch_start', type=int, default=0, help='# of start epoch')
 parser.add_argument('--epoch_decay', dest='epoch_decay', type=int, default=0, help='# of epoch to linearly decay lr to 0')
-parser.add_argument('--batch_size', dest='batch_size', type=int, default=8, help='# images in batch')
+parser.add_argument('--batch_size', dest='batch_size', type=int, default=4, help='# images in batch')
 parser.add_argument('--load_size', dest='load_size', type=int, default=256, help='input image size')
 parser.add_argument('--fine_size', dest='fine_size', type=int, default=64, help='rescale image to this size')
 parser.add_argument('--upscale', dest='upscale', type=int, default=4, help='upscale fine_size to fine_size x 4')
