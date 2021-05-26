@@ -200,11 +200,13 @@ def train(args):
                     all_ssim.append(cur_ssim)
                     if img_name[0][-2:] == '01':
                         img_S = pred_S.detach().squeeze(0).cpu()
+                        save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
+                        img_S = real_B.detach().squeeze(0).cpu()
+                        save_img(img_S, '{}/input_'.format(args.valid_dir) + img_name[0])
                         img_roi = pred_label.detach().squeeze(0).cpu()
                         img_roi = (img_roi*2-1.)
                         save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
 
-                        save_img(img_S, '{}/test_'.format(args.valid_dir) + img_name[0])
                         print('test_{}: PSNR = {} dB, SSIM = {}'
                               .format(img_name[0], cur_psnr, cur_ssim))
 
