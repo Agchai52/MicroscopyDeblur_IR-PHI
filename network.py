@@ -22,7 +22,7 @@ class BlurModel(nn.Module):
             :return: z
             """
             x, y = loc
-            scale = 25  # 50
+            scale = 50  # 50
             sigma = 160.5586
             x, y = scale * x, scale * y
             z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
