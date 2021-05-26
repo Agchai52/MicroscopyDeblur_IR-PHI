@@ -33,7 +33,7 @@ def Gaussian_2D(m=0, sigma=1.):
     return Gaussian
 
 
-def generate_bean(bean_size=10, sigma=0.08, M=50, is_plot=False):
+def generate_bean(bean_size=10, sigma=0.03, M=50, is_plot=False):
     """
     :param bean_size: bean_size
     :param sigma: std
@@ -42,7 +42,6 @@ def generate_bean(bean_size=10, sigma=0.08, M=50, is_plot=False):
     :return: image of a bean
     """
     intensity = np.random.uniform(low=0.4, high=1.0)
-
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
     X, Y = np.meshgrid(np.linspace(-0.5, 0.5, M), np.linspace(-0.5, 0.5, M))
     d = np.dstack([X, Y])
@@ -59,14 +58,11 @@ def generate_bean(bean_size=10, sigma=0.08, M=50, is_plot=False):
 
     img_Z = intensity * img_Z
 
-    if bean_size < M:
-        bean = cv2.resize(img_Z, (bean_size, bean_size), interpolation=cv2.INTER_CUBIC)
-    else:
-        bean = img_Z
+    bean = cv2.resize(img_Z, (bean_size, bean_size), interpolation=cv2.INTER_CUBIC)
 
     if is_plot:
-        cv2.imwrite("bean_size10.png", bean)
-        cv2.imwrite("bean_size50.png", img_Z)
+        # cv2.imwrite("bean_size10.png", bean)
+        # cv2.imwrite("bean_size50.png", img_Z)
 
         plt.figure(0)
         plt.imshow(img_Z, cmap='gray', vmin=0, vmax=255)
@@ -92,7 +88,41 @@ def generate_elipse(loc, size):
     return elip
 
 
-def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_plot=False):
+def plot_a_bean(background, bean_loc, bean_size, image_size=256):
+    if bean_size % 2 != 0:
+        bean_size += 1
+    bean_loc_x, bean_loc_y = bean_loc
+    bean = generate_bean(bean_size=bean_size)
+    if 0 <= bean_loc_y - bean_size // 2:
+        left = bean_loc_y - bean_size // 2
+    else:
+        left = 0
+        bean = bean[:, (bean_size // 2 - bean_loc_y):]
+
+    if bean_loc_y + bean_size // 2 < image_size:
+        right = bean_loc_y + bean_size // 2
+    else:
+        right = image_size
+        bean = bean[:, 0:(image_size + bean_size // 2 - bean_loc_y)]
+
+    if 0 <= bean_loc_x - bean_size // 2:
+        up = bean_loc_x - bean_size // 2
+    else:
+        up = 0
+        bean = bean[(bean_size // 2 - bean_loc_x):, :]
+
+    if bean_loc_x + bean_size // 2 < image_size:
+        down = bean_loc_x + bean_size // 2
+    else:
+        down = image_size
+        bean = bean[:(image_size + bean_size // 2 - bean_loc_x), :]
+
+    background[up:down, left:right] += bean
+
+    return background
+
+
+def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     """
     Generate a sharp image with beans
     :param image_size: image_H = image_W = image_size
@@ -105,80 +135,44 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=7, is_
 
     bean_size0 = bean_size
     bean_num = np.random.randint(low=bean_min, high=bean_max)
-    bean_locs = []
+    bean_id = 0
+    background = np.zeros((image_size, image_size))
     for i in range(bean_num):
         # Sample loc for the first bean
-        bean_size = np.int(np.floor(bean_size0 * np.random.uniform(low=0.5, high=4)))
+        if np.random.random() < 0.8:
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=3)))
+        else:
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=3, high=7)))
+
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
-        bean_locs.append(bean_loc)
+        background = plot_a_bean(background, bean_loc, bean_size, image_size)
+        bean_id += 1
 
-        # Sample loc for the second bean
-        if np.random.random() < 0.3 and bean_size < 30:
-            new_loc = [0, 0]
-            dist1 = list(np.random.randint(low=bean_size // 2, high=bean_size + 1, size=(2, )))
-            new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-            new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+        # # Sample loc for the second bean
+        # if np.random.random() < 0.3 and bean_size < 30:
+        #     new_loc = [0, 0]
+        #     dist1 = list(np.random.randint(low=bean_size // 2, high=bean_size + 1, size=(2, )))
+        #     new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
+        #     new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+        #
+        #     if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+        #             and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
+        #         background = plot_a_bean(background, bean_loc, bean_size, image_size)
+        #         bean_id += 1
+        #
+        #         # Sample loc for the third bean
+        #         if np.random.random() < 0.5:
+        #             new_loc = [0, 0]
+        #             dist1 = list(np.random.randint(low=bean_size, high=bean_size * 1.5, size=(2,)))
+        #             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
+        #             new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+        #
+        #             if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+        #                     and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
+        #                 background = plot_a_bean(background, bean_loc, bean_size, image_size)
+        #                 bean_id += 1
 
-            if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
-                    and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
-                bean_locs.append(new_loc)
-
-                # Sample loc for the third bean
-                if np.random.random() < 0.5:
-                    new_loc = [0, 0]
-                    dist1 = list(np.random.randint(low=bean_size, high=bean_size * 1.5, size=(2,)))
-                    new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-                    new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
-
-                    if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
-                            and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
-                        bean_locs.append(new_loc)
-
-    background = np.zeros((image_size, image_size))
-
-    for bean_loc in bean_locs:
-        # bean_size = np.int(bean_size * np.random.uniform(low=0.8, high=1.2))
-        if bean_size % 2 != 0:
-            bean_size += 1
-        bean_loc_x, bean_loc_y = bean_loc
-        bean = generate_bean(bean_size=bean_size)
-        if 0 <= bean_loc_y - bean_size // 2:
-            left = bean_loc_y - bean_size // 2
-        else:
-            left = 0
-            bean = bean[:, (bean_size//2 - bean_loc_y):]
-
-        if bean_loc_y + bean_size // 2 < image_size:
-            right = bean_loc_y + bean_size // 2
-        else:
-            right = image_size
-            bean = bean[:, 0:(image_size + bean_size // 2 - bean_loc_y)]
-
-        if 0 <= bean_loc_x - bean_size // 2:
-            up = bean_loc_x - bean_size // 2
-        else:
-            up = 0
-            bean = bean[(bean_size//2 - bean_loc_x):, :]
-
-        if bean_loc_x + bean_size // 2 < image_size:
-            down = bean_loc_x + bean_size // 2
-        else:
-            down = image_size
-            bean = bean[:(image_size + bean_size // 2 - bean_loc_x), :]
-
-        background[up:down, left:right] += bean
-
-    if is_plot:
-        # cv2.imwrite("sample_img.png", background)
-        plt.figure(1)
-        plt.imshow(background, cmap='gray', vmin=0, vmax=255)
-
-        plt.figure(2)
-        plt.imshow(background, cmap=plt.get_cmap("jet"))
-        plt.colorbar()
-        plt.show()
-        exit()
-    return background, len(bean_locs)
+    return background, bean_id
 
 
 def convolve(image, kernel):
@@ -213,7 +207,7 @@ def kernel_fit(loc):
     :return: z
     """
     x, y = loc
-    scale = 50  # 50
+    scale = 25  # 50
     sigma = 160.5586
     x, y = scale * x, scale * y
     z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
@@ -255,7 +249,7 @@ def get_kernel(is_plot=False):
     return kernel
 
 
-def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=False):
+def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=True):
     name_path_file = name_folder + "_instance_names.txt"
     f_original = open(name_path_file, "w+")
 
