@@ -73,19 +73,19 @@ def generate_bean(bean_size=10, sigma=0.03, M=50, is_plot=False):
     return bean
 
 
-def generate_elipse(loc, size):
-    """
-    :param loc: (x, y)
-    :return: image of an elipse
-    """
-    x_loc, y_loc = loc
-    width = size * np.random.uniform(low=0.3, high=1.5)
-    height = size * np.random.uniform(low=0.5, high=1.5)
-    angle = np.random.uniform(low=0, high=360)
-    intensity = np.random.uniform(low=0.5, high=1.0)
-
-    elip = patches.Ellipse((x_loc, y_log), width, height, angle=angle) * intensity
-    return elip
+# def generate_elipse(loc, size):
+#     """
+#     :param loc: (x, y)
+#     :return: image of an elipse
+#     """
+#     x_loc, y_loc = loc
+#     width = size * np.random.uniform(low=0.3, high=1.5)
+#     height = size * np.random.uniform(low=0.5, high=1.5)
+#     angle = np.random.uniform(low=0, high=360)
+#     intensity = np.random.uniform(low=0.5, high=1.0)
+#
+#     elip = patches.Ellipse((x_loc, y_log), width, height, angle=angle) * intensity
+#     return elip
 
 
 def plot_a_bean(background, bean_loc, bean_size, image_size=256):
@@ -142,7 +142,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
         if np.random.random() < 0.8:
             bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=3)))
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=3, high=7)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=3, high=6)))
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
@@ -249,7 +249,7 @@ def get_kernel(is_plot=False):
     return kernel
 
 
-def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=True):
+def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=False):
     name_path_file = name_folder + "_instance_names.txt"
     f_original = open(name_path_file, "w+")
 
@@ -314,7 +314,7 @@ if __name__ == "__main__":
         f_train = open(img_output_fold + "_instance_names.txt", "r")
         train_data_name = f_train.readlines()
         f_train.close()
-        print("Number of instances = ", len(train_data_name))
+        print("Number of instances = {}".format(len(train_data_name)))
 
     # bean = generate_bean(bean_size=3, sigma=0.2, M=50)
     # cv2.imwrite("bean_size3.png", bean)
