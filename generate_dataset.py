@@ -28,12 +28,12 @@ def Gaussian_2D(m=0, sigma=1.):
     :return: Gaussian distribution
     """
     mean = np.zeros(2) + m
-    cov = np.eye(2) * sigma
+    cov = np.eye(2) * sigma ** 2
     Gaussian = multivariate_normal(mean=mean, cov=cov)
     return Gaussian
 
 
-def generate_bean(bean_size=10, sigma=0.03, M=50, is_plot=False):
+def generate_bean(bean_size, M=50, is_plot=False):
     """
     :param bean_size: bean_size
     :param sigma: std
@@ -42,14 +42,23 @@ def generate_bean(bean_size=10, sigma=0.03, M=50, is_plot=False):
     :return: image of a bean
     """
     intensity = np.random.uniform(low=0.4, high=1.0)
+    sigma = bean_size / 2.355
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
-    X, Y = np.meshgrid(np.linspace(-0.5, 0.5, M), np.linspace(-0.5, 0.5, M))
+    if bean_size >= 50:
+        M = 140
+    elif bean_size >= 40:
+        M = 120
+    elif bean_size >= 30:
+        M = 100
+    elif bean_size >= 20:
+        M = 70
+    X, Y = np.meshgrid(np.linspace(-M//2, M//2, M), np.linspace(-M//2, M//2, M))
     d = np.dstack([X, Y])
     Z = np.zeros((M, M))
     for i in range(len(d)):
         for j in range(len(d[0])):
             x, y = d[i][j]
-            if x ** 2 + y ** 2 <= 0.5*0.5-0.01:
+            if x ** 2 + y ** 2 <= (M//2) ** 2 * 2:
                 Z[i][j] = Gaussian.pdf((x, y))
 
     Z = Z.reshape(M, M)
@@ -207,7 +216,7 @@ def kernel_fit(loc):
     :return: z
     """
     x, y = loc
-    scale = 50  # 50
+    scale = 100  # 50
     sigma = 160.5586
     x, y = scale * x, scale * y
     z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
