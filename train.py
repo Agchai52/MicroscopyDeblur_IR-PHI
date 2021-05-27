@@ -117,7 +117,7 @@ def train(args):
 
             # train with real
             real_label = netD(real_S)
-            loss_d_real = criterion_L2(real_label, mask_real_S) * 0.1
+            loss_d_real = criterion_L2(real_label, mask_real_S) *  0.1
 
             loss_d_real.backward()
             optimizer_D.step()
