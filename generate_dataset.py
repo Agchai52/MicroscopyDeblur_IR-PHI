@@ -65,7 +65,7 @@ def generate_bean(bean_size, M=50, is_plot=False):
     max_Z = np.max(Z)
     img_Z = np.uint8(np.asarray(Z)/max_Z*255)
 
-    img_Z = intensity * img_Z
+    img_Z = img_Z # * intensity
 
     bean = cv2.resize(img_Z, (bean_size, bean_size), interpolation=cv2.INTER_CUBIC)
 
@@ -143,43 +143,44 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     """
 
     bean_size0 = bean_size
-    bean_num = np.random.randint(low=bean_min, high=bean_max)
+    bean_num = 1# np.random.randint(low=bean_min, high=bean_max)
     bean_id = 0
     background = np.zeros((image_size, image_size))
     for i in range(bean_num):
         # Sample loc for the first bean
-        if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=3)))
+        if np.random.random() < 0.99:
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=1, high=3)))
         else:
             bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=3, high=6)))
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
+        bean_loc = [image_size//2, image_size//2]
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
         bean_id += 1
 
-        # # Sample loc for the second bean
-        # if np.random.random() < 0.3 and bean_size < 30:
-        #     new_loc = [0, 0]
-        #     dist1 = list(np.random.randint(low=bean_size // 2, high=bean_size + 1, size=(2, )))
-        #     new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-        #     new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
-        #
-        #     if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
-        #             and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
-        #         background = plot_a_bean(background, bean_loc, bean_size, image_size)
-        #         bean_id += 1
-        #
-        #         # Sample loc for the third bean
-        #         if np.random.random() < 0.5:
-        #             new_loc = [0, 0]
-        #             dist1 = list(np.random.randint(low=bean_size, high=bean_size * 1.5, size=(2,)))
-        #             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-        #             new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
-        #
-        #             if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
-        #                     and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
-        #                 background = plot_a_bean(background, bean_loc, bean_size, image_size)
-        #                 bean_id += 1
+        # Sample loc for the second bean
+        if True: # np.random.random() < 1. and bean_size < 30:
+            new_loc = [0, 0]
+            dist1 = [0, bean_size-10]# list(np.random.randint(low=bean_size // 2, high=bean_size + 1, size=(2, )))
+            new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
+            new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+
+            if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+                    and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
+                background = plot_a_bean(background, new_loc, bean_size, image_size)
+                bean_id += 1
+
+                # Sample loc for the third bean
+                # if np.random.random() < 0.5:
+                #     new_loc = [0, 0]
+                #     dist1 = list(np.random.randint(low=bean_size, high=bean_size * 1.5, size=(2,)))
+                #     new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
+                #     new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+                #
+                #     if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
+                #             and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
+                #         background = plot_a_bean(background, bean_loc, bean_size, image_size)
+                #         bean_id += 1
 
     return background, bean_id
 
@@ -258,7 +259,7 @@ def get_kernel(is_plot=False):
     return kernel
 
 
-def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=False):
+def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=True):
     name_path_file = name_folder + "_instance_names.txt"
     f_original = open(name_path_file, "w+")
 

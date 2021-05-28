@@ -92,6 +92,8 @@ def test(args):
                 img_roi = (img_roi * 2 - 1.)
                 save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
+                img_S = real_B.detach().squeeze(0).cpu()
+                save_img(img_S, '{}/input_'.format(args.test_dir) + img_name[0])
                 # img_S = recov_B.detach().squeeze(0).cpu()
                 # save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
                 #
