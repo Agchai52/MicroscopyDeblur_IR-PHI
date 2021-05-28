@@ -68,24 +68,39 @@ def test(args):
     all_psnr = []
     all_ssim = []
     start_time = time.time()
-
+    netG_S2B = BlurModel(args, device)
     with torch.no_grad():
         for batch in test_data_loader:
-            real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)
+            real_B, real_S, img_name = batch[0], batch[1], batch[2]
+            real_B, real_S = real_B.to(device), real_S.to(device)
             # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
+            recov_B = netG_S2B(real_S)
+            recov_B = recov_B[0]
+
+            pred_label = netD(pred_S)
+
             cur_psnr, cur_ssim = compute_metrics(real_S, pred_S)
             all_psnr.append(cur_psnr)
             all_ssim.append(cur_ssim)
-
             if img_name[0][-2:] == '01':
                 img_S = pred_S.detach().squeeze(0).cpu()
+                img_roi = pred_label.detach().squeeze(0).cpu()
+                img_roi = (img_roi * 2 - 1.)
+                save_img(img_roi, '{}/roi_'.format(args.valid_dir) + img_name[0])
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
-
+                # img_S = real_B.detach().squeeze(0).cpu()
+                # save_img(img_S, '{}/input_'.format(args.test_dir) + img_name[0])
+                # img_S = recov_B.detach().squeeze(0).cpu()
+                # save_img(img_S, '{}/recover_'.format(args.test_dir) + img_name[0])
+                #
+                # real_B0 = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
+                # img_S = real_B0.detach().squeeze(0).cpu()
+                # save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
+                # exit()
                 print('test_{}: PSNR = {} dB, SSIM = {}'
                       .format(img_name[0], cur_psnr, cur_ssim))
 
@@ -148,9 +163,13 @@ def test_real(args):
             # real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
 
             pred_S = netG(real_B)
+            pred_S = pred_S[-1]
 
-            img_S = pred_S[2].detach().squeeze(0).cpu()
+            img_S = pred_S.detach().squeeze(0).cpu()
             save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
+
+            # img_S = real_B.detach().squeeze(0).cpu()
+            # save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)

@@ -22,7 +22,7 @@ class BlurModel(nn.Module):
             :return: z
             """
             x, y = loc
-            scale = 50  # 50
+            scale = 25
             sigma = 160.5586
             x, y = scale * x, scale * y
             z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
@@ -87,20 +87,6 @@ class Generator(nn.Module):
     def __init__(self, args, device='cpu'):
         super(Generator, self).__init__()
 
-        def down(c_in, c_out, k=3, s=2, p=0, d=1):
-            return nn.Sequential(
-                nn.ReflectionPad2d([0, 1, 0, 1]),
-                nn.Conv2d(c_in, c_out, k, s, p, d), nn.SELU(inplace=True),
-                Channel_Att(c_out)
-            )
-
-        def up(c_in, c_out, k=2, s=2):
-            return nn.Sequential(
-                nn.ConvTranspose2d(c_in, c_out, kernel_size=k, stride=s),
-                nn.SELU(inplace=True),
-                Channel_Att(c_out)
-            )
-
         self.input_nc = args.input_nc
         self.ngf = args.ngf
         self.device = device
@@ -131,24 +117,6 @@ class Generator(nn.Module):
                                 nn.Conv2d(self.ngf * 1, self.input_nc, kernel_size=3, stride=1, padding=0,
                                           padding_mode='circular'),  # (B, 1, H, W)
                                 nn.Tanh())
-
-        # self.in_net1 = nn.Sequential(
-        #     nn.Conv2d(self.input_nc, self.ngf, 3, 1, 1),
-        #     nn.SELU(inplace=True),
-        # )
-        #
-        # self.in_net2 = down(self.ngf * 1, self.ngf * 2)
-        # self.in_net3 = down(self.ngf * 2, self.ngf * 4)
-        #
-        # self.res_net1 = ResBlock(self.ngf * 1, self.ngf * 1)
-        # self.res_net2 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net3 = ResBlock(self.ngf * 2, self.ngf * 2)
-        # self.res_net4 = ResBlock(self.ngf * 1, self.ngf * 1)
-        #
-        # self.up_net1 = up(self.ngf * 4, self.ngf * 2)
-        # self.up_net2 = up(self.ngf * 2, self.ngf * 1)
-        #
-        # self.end_net = nn.Sequential(nn.Conv2d(self.ngf * 1, self.input_nc, 1, 1, 0), nn.Tanh())
 
     def forward(self, img):
         # Encoder
@@ -324,4 +292,4 @@ class GradientLoss(nn.Module):
         h_map = self.loss(real_grad_h, fake_grad_h)
         v_map = self.loss(real_grad_v, fake_grad_v)
 
-        return 0.5 * (h_map + v_map)
+        return (h_map + v_map)
