@@ -22,7 +22,7 @@ class BlurModel(nn.Module):
             :return: z
             """
             x, y = loc
-            scale = 50  # 50
+            scale = 25
             sigma = 160.5586
             x, y = scale * x, scale * y
             z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
@@ -316,4 +316,4 @@ class GradientLoss(nn.Module):
         h_map = self.loss(real_grad_h, fake_grad_h)
         v_map = self.loss(real_grad_v, fake_grad_v)
 
-        return 0.5 * (h_map + v_map)
+        return (h_map + v_map)

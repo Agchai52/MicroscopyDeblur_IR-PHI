@@ -103,7 +103,7 @@ def train(args):
             optimizer_G.zero_grad()
 
             loss_l2 = criterion_L2(fake_S, real_S) * args.L2_lambda
-            loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda
+            loss_grad = criterion_grad(fake_S, real_S) * args.L2_lambda / 2
 
             loss_g = loss_l2 + loss_grad
 
