@@ -91,8 +91,8 @@ def train(args):
     print('Start from epoch: ', pre_epoch)
     for epoch in range(pre_epoch, args.epoch):
         for iteration, batch in enumerate(train_data_loader, 1):
-            real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-            real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
+            real_B, real_S, img_name = batch[0], batch[1], batch[2]
+            real_B, real_S = real_B.to(device), real_S.to(device)  # (b, 1, 64, 64)  # (b, 1, 64, 64)
 
             fake_S = netG(real_B)  # (64, 64)
 
@@ -150,8 +150,8 @@ def train(args):
             all_ssim = []
             with torch.no_grad():
                 for batch in test_data_loader:
-                    real_B, real_S, label, img_name = batch[0], batch[1], batch[2], batch[3]
-                    real_B, real_S, label = real_B.to(device), real_S.to(device), label.to(device)
+                    real_B, real_S, img_name = batch[0], batch[1], batch[2]
+                    real_B, real_S = real_B.to(device), real_S.to(device)
                     # B = (B, 1, 64, 64), S = (B, 1, 256, 256)
 
                     pred_S = netG(real_B)
