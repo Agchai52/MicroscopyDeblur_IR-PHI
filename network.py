@@ -45,7 +45,7 @@ class BlurModel(nn.Module):
         for i in range(len(d)):
             for j in range(len(d[0])):
                 x, y = d[i][j]
-                Z[i][j] = kernel_fit((x, y), level)
+                Z[i][j] = self.kernel_fit((x, y), level)
 
         Z = Z.reshape(M, M)
         img_Z = np.asarray(Z)
