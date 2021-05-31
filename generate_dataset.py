@@ -155,7 +155,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
             new_loc = [0, 0]
             dist1 = list(np.random.randint(low=bean_size // 3, high=bean_size + 1, size=(2, )))
             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-            new_loc[1] = bean_loc[1] + dist1[1] # if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+            new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
 
             if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
                     and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
