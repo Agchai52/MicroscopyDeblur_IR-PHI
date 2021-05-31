@@ -15,57 +15,58 @@ class BlurModel(nn.Module):
     def __init__(self, args, device='cpu'):
         super(BlurModel, self).__init__()
 
-        def kernel_fit(loc):
-            """
-            Estimated psf of laser
-            :param loc: (x, y)
-            :return: z
-            """
-            x, y = loc
-            scale = 25
-            sigma = 160.5586
-            x, y = scale * x, scale * y
-            z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
-            return z
-
-        def get_kernel():
-            """
-            Compute cropped blur kernel
-            :param is_plot: bool
-            :return: blur kernel
-            """
-            M = 61
-            X, Y = np.meshgrid(np.linspace(-30, 31, M), np.linspace(-30, 31, M))
-            d = np.dstack([X, Y])
-            Z = np.zeros((M, M))
-            for i in range(len(d)):
-                for j in range(len(d[0])):
-                    x, y = d[i][j]
-                    Z[i][j] = kernel_fit((x, y))
-
-            Z = Z.reshape(M, M)
-            img_Z = np.asarray(Z)
-            crop_size = 15
-            crop_Z = img_Z[crop_size:M - crop_size, crop_size:M - crop_size]
-            kernel = crop_Z / np.float(np.sum(crop_Z))
-            return kernel
-
         self.batch_size = args.batch_size
         self.device = device
-        self.kernel = torch.FloatTensor(get_kernel())  # (31, 31)
-        self.loss = nn.MSELoss()
-        self.kernel_size = self.kernel.shape[0]
-        self.pad_size = (self.kernel_size - 1) // 2
-        self.unfold = nn.Unfold(self.kernel_size)
+        self.args = args  # (31, 31)
+
+    def kernel_fit(self, loc, level=1.):
+        """
+        Estimated psf of laser
+        :param loc: (x, y)
+        :return: z
+        """
+        x, y = loc
+        scale = 25 * level
+        sigma = 160.5586
+        x, y = scale * x, scale * y
+        z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
+        return z
+
+    def get_kernel(self, level=1.):
+        """
+        Compute cropped blur kernel
+        :param is_plot: bool
+        :return: blur kernel
+        """
+        M = 61
+        X, Y = np.meshgrid(np.linspace(-30, 31, M), np.linspace(-30, 31, M))
+        d = np.dstack([X, Y])
+        Z = np.zeros((M, M))
+        for i in range(len(d)):
+            for j in range(len(d[0])):
+                x, y = d[i][j]
+                Z[i][j] = kernel_fit((x, y), level)
+
+        Z = Z.reshape(M, M)
+        img_Z = np.asarray(Z)
+        crop_size = 15
+        crop_Z = img_Z[crop_size:M - crop_size, crop_size:M - crop_size]
+        kernel = crop_Z / np.float(np.sum(crop_Z))
+        return kernel
 
     def forward(self, x):
         # x : (B, 1, H, W)
-        # Padding
-        x = nn.ReflectionPad2d(self.pad_size)(x)  # (B, 1, H+2p, W+2p)
-
+        _, _, h, w = x.shape
         # weight :
-        kernel = self.kernel.expand(1, 1, self.kernel_size, self.kernel_size)  # (1, 1, 31, 31)
+        level = self.args.load_size / h
+        kernel = self.get_kernel(level)
+        kernel_size = kernel.shape[0]
+        pad_size = (kernel_size - 1) // 2
+        kernel = kernel.expand(1, 1, kernel_size, kernel_size)  # (1, 1, 31, 31)
         kernel = kernel.flip(-1).flip(-2).to(self.device)
+
+        # Padding
+        x = nn.ZeroPad2d(pad_size)(x)  # (B, 1, H+2p, W+2p)
 
         # Convolution
         blur_img = F.conv2d(x, kernel)
