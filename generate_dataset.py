@@ -8,6 +8,7 @@ import matplotlib as mpl
 mpl.use('TkAgg')
 from matplotlib import pyplot as plt
 from matplotlib import patches
+from scipy.signal import find_peaks, find_peaks, peak_widths
 
 
 parser = argparse.ArgumentParser('Geneate dataset BlurMicroscopy')
@@ -33,7 +34,7 @@ def Gaussian_2D(m=0, sigma=1.):
     return Gaussian
 
 
-def generate_bean(bean_size, M=50, is_plot=False):
+def generate_bean(bean_size, is_plot=False):
     """
     :param bean_size: bean_size
     :param sigma: std
@@ -41,17 +42,12 @@ def generate_bean(bean_size, M=50, is_plot=False):
     :param is_plot: bool plot images
     :return: image of a bean
     """
-    intensity = np.random.uniform(low=0.4, high=1.0)
+    intensity = 1.  # np.random.uniform(low=0.4, high=1.0)
     sigma = bean_size / 2.355
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
-    if bean_size >= 50:
-        M = 140
-    elif bean_size >= 40:
-        M = 120
-    elif bean_size >= 30:
-        M = 100
-    elif bean_size >= 20:
-        M = 70
+    M = int(bean_size * 3)
+    if M % 2 == 1:
+        M += 1
     X, Y = np.meshgrid(np.linspace(-M//2, M//2, M), np.linspace(-M//2, M//2, M))
     d = np.dstack([X, Y])
     Z = np.zeros((M, M))
@@ -65,9 +61,7 @@ def generate_bean(bean_size, M=50, is_plot=False):
     max_Z = np.max(Z)
     img_Z = np.uint8(np.asarray(Z)/max_Z*255)
 
-    img_Z = img_Z * intensity
-
-    bean = cv2.resize(img_Z, (bean_size, bean_size), interpolation=cv2.INTER_CUBIC)
+    bean = img_Z * intensity
 
     if is_plot:
         # cv2.imwrite("bean_size10.png", bean)
@@ -98,33 +92,32 @@ def generate_bean(bean_size, M=50, is_plot=False):
 
 
 def plot_a_bean(background, bean_loc, bean_size, image_size=256):
-    if bean_size % 2 != 0:
-        bean_size += 1
     bean_loc_x, bean_loc_y = bean_loc
     bean = generate_bean(bean_size=bean_size)
-    if 0 <= bean_loc_y - bean_size // 2:
-        left = bean_loc_y - bean_size // 2
+    bean_wid = bean.shape[0]
+    if 0 <= bean_loc_y - bean_wid // 2:
+        left = bean_loc_y - bean_wid // 2
     else:
         left = 0
-        bean = bean[:, (bean_size // 2 - bean_loc_y):]
+        bean = bean[:, (bean_wid // 2 - bean_loc_y):]
 
-    if bean_loc_y + bean_size // 2 < image_size:
-        right = bean_loc_y + bean_size // 2
+    if bean_loc_y + bean_wid // 2 < image_size:
+        right = bean_loc_y + bean_wid // 2
     else:
         right = image_size
-        bean = bean[:, 0:(image_size + bean_size // 2 - bean_loc_y)]
+        bean = bean[:, 0:(image_size + bean_wid // 2 - bean_loc_y)]
 
-    if 0 <= bean_loc_x - bean_size // 2:
-        up = bean_loc_x - bean_size // 2
+    if 0 <= bean_loc_x - bean_wid // 2:
+        up = bean_loc_x - bean_wid // 2
     else:
         up = 0
-        bean = bean[(bean_size // 2 - bean_loc_x):, :]
+        bean = bean[(bean_wid // 2 - bean_loc_x):, :]
 
-    if bean_loc_x + bean_size // 2 < image_size:
-        down = bean_loc_x + bean_size // 2
+    if bean_loc_x + bean_wid // 2 < image_size:
+        down = bean_loc_x + bean_wid // 2
     else:
         down = image_size
-        bean = bean[:(image_size + bean_size // 2 - bean_loc_x), :]
+        bean = bean[:(image_size + bean_wid // 2 - bean_loc_x), :]
 
     background[up:down, left:right] += bean
 
@@ -149,9 +142,9 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=3)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.2, high=2.5)))
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=3, high=6)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=2.5, high=6)))
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
@@ -293,7 +286,25 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
             # plt.figure()
             # plt.imshow(blurry_noisy, cmap='gray', vmin=0, vmax=255)
             plt.figure()
+            roi_x = np.max(sharp, axis=0, keepdims=False)
+            peaks, _ = find_peaks(roi_x)
+            results_half = peak_widths(roi_x, peaks, rel_height=0.5)
+
+            plt.plot(roi_x)
+            if len(results_half) > 0:
+                fwhm1 = results_half[0][0]
+                fwhm1 = float("{:.2f}".format(fwhm1))
+                print("FWHM = ", fwhm1)
+                plt.hlines(*results_half[1:], color="C2")
+
+            fig = plt.figure()
             plt.imshow(sharp, cmap=plt.get_cmap("jet"))
+            ax = fig.gca()
+            fwhm = 30
+            c1 = plt.Circle((128, 128), fwhm / 2, color='red', linewidth=1, fill=False)
+            ax.add_patch(c1)
+            c2 = plt.Circle((128+55, 128), fwhm / 2, color='green', linewidth=1, fill=False)
+            ax.add_patch(c2)
             plt.colorbar()
             plt.figure()
             plt.imshow(blurry, cmap=plt.get_cmap("jet"))
