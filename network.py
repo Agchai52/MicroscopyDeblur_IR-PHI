@@ -59,7 +59,7 @@ class BlurModel(nn.Module):
         _, _, h, w = x.shape
         # weight :
         level = self.args.load_size / h
-        kernel = self.get_kernel(level)
+        kernel = torch.FloatTensor(self.get_kernel(level))
         kernel_size = kernel.shape[0]
         pad_size = (kernel_size - 1) // 2
         kernel = kernel.expand(1, 1, kernel_size, kernel_size)  # (1, 1, 31, 31)
