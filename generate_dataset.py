@@ -42,7 +42,7 @@ def generate_bean(bean_size, is_plot=False):
     :param is_plot: bool plot images
     :return: image of a bean
     """
-    intensity = 1.  # np.random.uniform(low=0.4, high=1.0)
+    intensity = np.random.uniform(low=0.4, high=1.0)
     sigma = bean_size / 2 / 2.355
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
     M = int(bean_size * 3)
@@ -142,7 +142,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.2, high=2.5)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=2.5)))
         else:
             bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=2.5, high=6)))
 
@@ -155,7 +155,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
             new_loc = [0, 0]
             dist1 = list(np.random.randint(low=bean_size // 3, high=bean_size + 1, size=(2, )))
             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
-            new_loc[1] = bean_loc[1] + dist1[1] if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
+            new_loc[1] = bean_loc[1] + dist1[1] # if np.random.random() < 0.5 else bean_loc[1] - dist1[1]
 
             if (bean_size // 2) < new_loc[0] < (image_size - bean_size // 2) \
                     and (bean_size // 2) < new_loc[1] < (image_size - bean_size // 2):
@@ -291,7 +291,7 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
             results_half = peak_widths(roi_x, peaks, rel_height=0.5)
 
             plt.plot(roi_x)
-            if len(results_half) > 0:
+            if len(results_half[0]) > 0:
                 fwhm1 = results_half[0][0]
                 fwhm1 = float("{:.2f}".format(fwhm1))
                 print("FWHM = ", fwhm1)
@@ -303,7 +303,7 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
             fwhm = 30
             c1 = plt.Circle((128, 128), fwhm / 2, color='red', linewidth=1, fill=False)
             ax.add_patch(c1)
-            c2 = plt.Circle((128+55, 128), fwhm / 2, color='green', linewidth=1, fill=False)
+            c2 = plt.Circle((128+30, 128), fwhm / 2, color='green', linewidth=1, fill=False)
             ax.add_patch(c2)
             plt.colorbar()
             plt.figure()
