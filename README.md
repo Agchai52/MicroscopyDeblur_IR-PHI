@@ -23,7 +23,7 @@ python readDatasetNames.py
 
 ## Train the model
 ```
-python main.py --phase train --epoch 100 --gpu 0
+python main.py --phase train --epoch 10 --gpu 0
 ```
 
 ## Test the model
