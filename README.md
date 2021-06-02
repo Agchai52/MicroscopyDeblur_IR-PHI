@@ -1,4 +1,4 @@
-# MicroscopyDeblur
+# Deep Image Restoration for Infrared Photothermal Heterodyne Imaging (IR-PHI)
 Abstract: TODO
 
 ## Prerequisites
