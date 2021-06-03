@@ -32,6 +32,8 @@ parser.add_argument('--flip', dest='flip', type=bool, default=True, help='if fli
 parser.add_argument('--classes', dest='classes', type=int, default=32, help='max num of particles')
 parser.add_argument('--phase', dest='phase', default='train', help='train, test')
 parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkpoint', help='models are saved here')
+parser.add_argument('--input_dir', dest='input_dir', default='./dataset/real_images/', help='data to process')
+parser.add_argument('--output_dir', dest='output_dir', default='./output', help='output results for images in input_dir are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
 parser.add_argument('--valid_dir', dest='valid_dir', default='./valid', help='valid sample are saved here')
 parser.add_argument('--L2_lambda', dest='L2_lambda', type=float, default=100., help='weight on L2 term in objective')
@@ -72,8 +74,8 @@ elif args.phase == 'test':
 
 elif args.phase == 'test_real':
     os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
-    if not os.path.exists(args.test_dir):
-        os.makedirs(args.test_dir)
+    if not os.path.exists(args.output_dir):
+        os.makedirs(args.output_dir)
     test.test_real(args)
 else:
     raise Exception("Phase should be 'train" or 'test' or 'test_real')

@@ -56,15 +56,6 @@ def test(args):
     f_test.close()
     test_data_loader = DataLoader(DeblurDataset(test_data, args, False), batch_size=1, shuffle=False)
 
-    ############################
-    # For Other datasets
-    ###########################
-    # image_dir = "dataset/{}/test/a/".format(args.dataset_name)
-    # image_filenames = [x for x in os.listdir(image_dir) if is_image_file(x)]
-    # transform_list = [transforms.ToTensor(), transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))]
-    # transform = transforms.Compose(transform_list)
-    # for image_name in image_filenames:
-
     all_psnr = []
     all_ssim = []
     start_time = time.time()
@@ -102,14 +93,14 @@ def test(args):
                 img_S = real_B.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/input0_'.format(args.test_dir) + img_name[0])
                 img_S = real_B1.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/input1_'.format(args.test_dir) + img_name[0])
+                save_img(img_S, '{}/input1_'.format(args.valid_dir) + img_name[0])
                 img_S = real_B2.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/input2_'.format(args.test_dir) + img_name[0])
+                save_img(img_S, '{}/input2_'.format(args.valid_dir) + img_name[0])
 
                 img_S = pred_S0.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/output0_'.format(args.test_dir) + img_name[0])
+                save_img(img_S, '{}/output0_'.format(args.valid_dir) + img_name[0])
                 img_S = pred_S1.detach().squeeze(0).cpu()
-                save_img(img_S, '{}/output1_'.format(args.test_dir) + img_name[0])
+                save_img(img_S, '{}/output1_'.format(args.valid_dir) + img_name[0])
                 img_S = pred_S.detach().squeeze(0).cpu()
                 save_img(img_S, '{}/test_'.format(args.test_dir) + img_name[0])
 
@@ -124,7 +115,7 @@ def test(args):
 
 
 def test_real(args):
-    if torch.cuda.device_count() >= 1:
+    if torch.cuda.device_count() >= 1 and args.gpu >= 0:
         device = torch.device("cuda")
         print("Let's use", torch.cuda.device_count(), "GPUs!")
     else:
@@ -133,17 +124,11 @@ def test_real(args):
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
-    model_D = Classifier(args, device)
-    model_D = nn.DataParallel(model_D)
-
     print('===> Loading models')
     netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
-    netD = model_D.to(device)
-    net_d_path = "checkpoint/netD"
-
-    if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
+    if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
         raise Exception('No model to load for testing!')
     else:
@@ -153,16 +138,14 @@ def test_real(args):
         netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
 
-        model_path_D = find_latest_model(net_d_path)
-        checkpointD = torch.load(model_path_D)
-        netD.load_state_dict(checkpointD['model_state_dict'])
-        netD.eval()
-
     print("====> Loading data")
     ############################
     # For Real Images
     ###########################
-    image_dir = "dataset/{}/".format("real_images")
+    if not os.path.exists(args.input_dir):
+        raise Exception("Input folder not exist!")
+    else:
+        image_dir = args.input_dir
     image_filenames = [image_dir + x[0:-4] for x in os.listdir(image_dir) if x[-4:] in set([".png", ".jpg"])]
     test_data_loader = DataLoader(RealImage(image_filenames, args, False), batch_size=1, shuffle=False)
 
@@ -172,16 +155,11 @@ def test_real(args):
             real_B, img_name = batch[0], batch[1]
             real_B = real_B.to(device)
 
-            # real_B = F.interpolate(real_B, (args.fine_size, args.fine_size), mode="bilinear")
-
             pred_S = netG(real_B)
             pred_S = pred_S[-1]
 
             img_S = pred_S.detach().squeeze(0).cpu()
-            save_img(img_S, '{}/real_'.format(args.test_dir) + img_name[0])
-
-            # img_S = real_B.detach().squeeze(0).cpu()
-            # save_img(img_S, '{}/blur_'.format(args.test_dir) + img_name[0])
+            save_img(img_S, '{}/result_'.format(args.output_dir) + img_name[0])
 
     total_time = time.time() - start_time
     ave_time = total_time / len(test_data_loader)
