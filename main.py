@@ -46,7 +46,6 @@ parser.add_argument('--seed', type=int, default=123, help='random seed to use, D
 parser.add_argument('--save_intermediate', dest='save_intermediate', type=bool, default=True, help='Save validation image and metrics each epoch, Default=False')
 
 args = parser.parse_args()
-print(args)
 
 cudnn.benchmark = True
 
@@ -73,7 +72,8 @@ elif args.phase == 'test':
     test.test(args)
 
 elif args.phase == 'test_real':
-    os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
+    if args.gpu >= 0:
+        os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
     test.test_real(args)
