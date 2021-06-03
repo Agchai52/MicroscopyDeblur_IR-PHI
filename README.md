@@ -32,6 +32,10 @@ python main.py --phase test --gpu 0
 ```
 
 ## Test real images
+
+--input_dir: images to process saved here. Must be .png or .jpg image.\
+--output_dir: results of input_dir saved here.\
+--gpu: device to run the model. "-1": cpu, "0": gpu
 ```
-python main.py --phase test_real --gpu 0
+python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu -1
 ```
