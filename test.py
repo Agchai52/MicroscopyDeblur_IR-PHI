@@ -12,17 +12,13 @@ from Dataset import DeblurDataset, RealImage
 
 
 def test(args):
-    if torch.cuda.device_count() >= 1:
-        device = torch.device("cuda")
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-    else:
-        device = torch.device("cpu")
-
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_G = Generator(args, device)
-    model_G = nn.DataParallel(model_G)
-
     model_D = Classifier(args, device)
-    model_D = nn.DataParallel(model_D)
+    if torch.cuda.device_count() > 1:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+        model_G = nn.DataParallel(model_G)
+        model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
     netG = model_G.to(device)
