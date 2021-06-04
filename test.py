@@ -15,10 +15,10 @@ def test(args):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model_G = Generator(args, device)
     model_D = Classifier(args, device)
-    if torch.cuda.device_count() > 1:
-        print("Let's use", torch.cuda.device_count(), "GPUs!")
-        model_G = nn.DataParallel(model_G)
-        model_D = nn.DataParallel(model_D)
+    # if torch.cuda.device_count() > 1:
+    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    model_G = nn.DataParallel(model_G)
+    model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
     net_g_path = "checkpoint/netG"
