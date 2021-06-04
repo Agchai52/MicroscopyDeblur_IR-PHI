@@ -21,10 +21,7 @@ def test(args):
         model_D = nn.DataParallel(model_D)
 
     print('===> Loading models')
-    netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
-
-    netD = model_D.to(device)
     net_d_path = "checkpoint/netD"
 
     if not find_latest_model(net_g_path) or not find_latest_model(net_d_path):
@@ -34,14 +31,16 @@ def test(args):
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
         checkpointG = torch.load(model_path_G)
-        netG.load_state_dict(checkpointG['model_state_dict'])
-        netG.eval()
+        model_G.load_state_dict(checkpointG['model_state_dict'])
 
         model_path_D = find_latest_model(net_d_path)
         checkpointD = torch.load(model_path_D)
-        netD.load_state_dict(checkpointD['model_state_dict'])
-        netD.eval()
+        model_D.load_state_dict(checkpointD['model_state_dict'])
 
+        netG = model_G.to(device)
+        netD = model_D.to(device)
+        netG.eval()
+        netD.eval()
     print("====> Loading data")
     ############################
     # For DeblurMicroscope dataset
