@@ -31,7 +31,7 @@ conda deactivate
 ```
 conda activate env3
 ```
-- Put images in a folder, e.g. `dataset/real_images/`
+- Put `.png` or `.jpg` images in a folder, e.g. `dataset/real_images/`
 - Choose output folder, e.g. `output/`
 - Run the model on CPUs:
 ```
