@@ -8,9 +8,44 @@ Abstract: TODO
 ```
 pip install -r requirements.txt
 ```
+## Build virtual environment using Anaconda (Optional)
+- Install Anaconda [link](https://conda.io/projects/conda/en/latest/user-guide/install/windows.html)
+- Create a new conda virtualenv called env3 with Python 3.7:
+```
+conda create --name env3 python=3.7
+```
+- Install required packages:
+```
+conda install --name env3 -c conda-forge --file requirements.txt
+```
+- Activate environment:
+```
+conda activate env3
+```
+- Deactivate environment:
+```
+conda deactivate
+```
+## Process real images
+- Activate environment:
+```
+conda activate env3
+```
+- Put images in a folder, e.g. 'dataset/real_images/'
+- Choose output folder, e.g. 'output/'
+- Run model on CPUs:
+```
+python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu -1
+```
+- Run model on a GPU, with id=0:
+```
+python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu 0
+```
 
-## Preprocess the dataset
-1. Generate dataset
+
+## Train the model
+### Generate the dataset
+1. Generate train and test dataset
 ```
 python generate_dataset.py --phase train --num_imgs 2000
 python generate_dataset.py --phase test --num_imgs 500
@@ -20,22 +55,11 @@ python generate_dataset.py --phase test --num_imgs 500
 ```
 python readDatasetNames.py
 ```
-
-## Train the model
 ```
 python main.py --phase train --epoch 10 --gpu 0
 ```
 
-## Test the model
+### Test the model
 ```
 python main.py --phase test --gpu 0
-```
-
-## Test real images
-
---input_dir: images to process saved here. Must be .png or .jpg image.\
---output_dir: results of input_dir saved here.\
---gpu: device to run the model. "-1": cpu, "0": gpu
-```
-python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu -1
 ```
