@@ -30,11 +30,11 @@ def test(args):
     else:
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
-        checkpointG = torch.load(model_path_G)
+        checkpointG = torch.load(model_path_G, map_location=device)
         model_G.load_state_dict(checkpointG['model_state_dict'])
 
         model_path_D = find_latest_model(net_d_path)
-        checkpointD = torch.load(model_path_D)
+        checkpointD = torch.load(model_path_D, map_location=device)
         model_D.load_state_dict(checkpointD['model_state_dict'])
 
         netG = model_G.to(device)
