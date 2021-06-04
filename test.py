@@ -122,6 +122,7 @@ def test_real(args):
 
     print('===> Loading models')
     net_g_path = "checkpoint/netG"
+    netG = model_G.to(device)
 
     if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
@@ -130,8 +131,7 @@ def test_real(args):
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
         checkpointG = torch.load(model_path_G, map_location=device)
-        model_G.load_state_dict(checkpointG['model_state_dict'])
-        netG = model_G.to(device)
+        netG.load_state_dict(checkpointG['model_state_dict'])
         netG.eval()
     print("====> Loading data")
     ############################
