@@ -12,11 +12,13 @@ from Dataset import DeblurDataset, RealImage
 
 
 def test(args):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() and args.gpu >= 0 else "cpu")
     model_G = Generator(args, device)
     model_D = Classifier(args, device)
-    # if torch.cuda.device_count() > 1:
-    #     print("Let's use", torch.cuda.device_count(), "GPUs!")
+    if torch.cuda.device_count() > 1 and args.gpu >= 0:
+        print("Let's use", torch.cuda.device_count(), "GPUs!")
+    else:
+        print("Let's use CPUs!")
     model_G = nn.DataParallel(model_G)
     model_D = nn.DataParallel(model_D)
 
@@ -110,29 +112,27 @@ def test(args):
 
 
 def test_real(args):
-    if torch.cuda.device_count() >= 1 and args.gpu >= 0:
-        device = torch.device("cuda")
+    if torch.cuda.device_count() > 1 and args.gpu >= 0:
         print("Let's use", torch.cuda.device_count(), "GPUs!")
     else:
-        device = torch.device("cpu")
-
+        print("Let's use CPUs!")
+    device = torch.device("cuda" if torch.cuda.is_available() and args.gpu >= 0 else "cpu")
     model_G = Generator(args, device)
     model_G = nn.DataParallel(model_G)
 
     print('===> Loading models')
-    netG = model_G.to(device)
     net_g_path = "checkpoint/netG"
 
     if not find_latest_model(net_g_path):
         print(" [!] Load failed...")
-        raise Exception('No model to load for testing!')
+        raise Exception('No model to load!')
     else:
         print(" [*] Load SUCCESS")
         model_path_G = find_latest_model(net_g_path)
-        checkpointG = torch.load(model_path_G)
-        netG.load_state_dict(checkpointG['model_state_dict'])
+        checkpointG = torch.load(model_path_G, map_location=device)
+        model_G.load_state_dict(checkpointG['model_state_dict'])
+        netG = model_G.to(device)
         netG.eval()
-
     print("====> Loading data")
     ############################
     # For Real Images
