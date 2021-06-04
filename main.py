@@ -72,8 +72,7 @@ elif args.phase == 'test':
     test.test(args)
 
 elif args.phase == 'test_real':
-    if args.gpu >= 0:
-        os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
+    os.environ["CUDA_VISIBLE_DEVICES"] = "{}".format(args.gpu)
     if not os.path.exists(args.output_dir):
         os.makedirs(args.output_dir)
     test.test_real(args)
