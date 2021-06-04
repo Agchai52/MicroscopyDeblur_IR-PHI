@@ -33,11 +33,11 @@ conda activate env3
 ```
 - Put images in a folder, e.g. 'dataset/real_images/'
 - Choose output folder, e.g. 'output/'
-- Run model on CPUs:
+- Run the model on CPUs:
 ```
 python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu -1
 ```
-- Run model on a GPU, e.g. with gpu_id=0:
+- Run the model on a GPU, e.g. with gpu_id=0:
 ```
 python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu 0
 ```
