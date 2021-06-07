@@ -33,7 +33,7 @@ parser.add_argument('--classes', dest='classes', type=int, default=32, help='max
 parser.add_argument('--phase', dest='phase', default='train', help='train, test')
 parser.add_argument('--checkpoint_dir', dest='checkpoint_dir', default='./checkpoint', help='models are saved here')
 parser.add_argument('--input_dir', dest='input_dir', default='./dataset/real_images/', help='data to process')
-parser.add_argument('--output_dir', dest='output_dir', default='./output', help='output results for images in input_dir are saved here')
+parser.add_argument('--output_dir', dest='output_dir', default='./test', help='output results for images in input_dir are saved here')
 parser.add_argument('--test_dir', dest='test_dir', default='./test', help='test sample are saved here')
 parser.add_argument('--valid_dir', dest='valid_dir', default='./valid', help='valid sample are saved here')
 parser.add_argument('--L2_lambda', dest='L2_lambda', type=float, default=100., help='weight on L2 term in objective')
