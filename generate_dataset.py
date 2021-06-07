@@ -43,7 +43,7 @@ def generate_bean(bean_size, is_plot=False):
     :return: image of a bean
     """
     intensity = np.random.uniform(low=0.4, high=1.0)
-    sigma = bean_size / 2 / 2.355
+    sigma = bean_size / 2.355
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
     M = int(bean_size * 3)
     if M % 2 == 1:
