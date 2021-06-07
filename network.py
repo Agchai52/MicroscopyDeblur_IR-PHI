@@ -19,23 +19,25 @@ class BlurModel(nn.Module):
         self.device = device
         self.args = args  # (31, 31)
 
-    def kernel_fit(self, loc, level=1.):
+    def kernel_fit(self, loc, level=1.0):
         """
         Estimated psf of laser
         :param loc: (x, y)
+        :param level: level of image
         :return: z
         """
         x, y = loc
         scale = 25 * level
         sigma = 160.5586
+        a = 65.51
         x, y = scale * x, scale * y
-        z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
+        z = np.sqrt(np.log(2) / np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
         return z
 
-    def get_kernel(self, level=1.):
+    def get_kernel(self, level=1.0):
         """
         Compute cropped blur kernel
-        :param is_plot: bool
+        :param level: level of image
         :return: blur kernel
         """
         M = 61
@@ -74,16 +76,15 @@ class BlurModel(nn.Module):
 
     def __call__(self, x):
         b, c, h, w = x.shape
-        # x1 = x
-        # x2 = F.interpolate(x, (h // 2, w // 2), mode="bilinear")
-        # x3 = F.interpolate(x, (h // 4, w // 4), mode="bilinear")
-
-        # y1 = self.forward(x1)
-        # y2 = self.forward(x2)
-        # y3 = self.forward(x3)
-        y1 = self.forward(x)
-        y2 = F.interpolate(y1, (h // 2, w // 2), mode="bilinear")
-        y3 = F.interpolate(y1, (h // 4, w // 4), mode="bilinear")
+        x1 = x
+        x2 = F.interpolate(x, (h // 2, w // 2), mode="bilinear")
+        x3 = F.interpolate(x, (h // 4, w // 4), mode="bilinear")
+        y1 = self.forward(x1)
+        y2 = self.forward(x2)
+        y3 = self.forward(x3)
+        # y1 = self.forward(x)
+        # y2 = F.interpolate(y1, (h // 2, w // 2), mode="bilinear")
+        # y3 = F.interpolate(y1, (h // 4, w // 4), mode="bilinear")
         return list([y3, y2, y1])
 
 

@@ -27,7 +27,7 @@ conda activate env3
 conda deactivate
 ```
 ## Process real images
-- Activate environment:
+- Activate environment (Optional if use virtual env rather than conda):
 ```
 conda activate env3
 ```

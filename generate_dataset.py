@@ -45,7 +45,7 @@ def generate_bean(bean_size, is_plot=False):
     intensity = np.random.uniform(low=0.4, high=1.0)
     sigma = bean_size / 2.355
     Gaussian = Gaussian_2D(m=0, sigma=sigma)
-    M = int(bean_size * 3)
+    M = int(sigma * 6)
     if M % 2 == 1:
         M += 1
     X, Y = np.meshgrid(np.linspace(-M//2, M//2, M), np.linspace(-M//2, M//2, M))
@@ -211,8 +211,9 @@ def kernel_fit(loc):
     x, y = loc
     scale = 25
     sigma = 160.5586
+    a = 65.51
     x, y = scale * x, scale * y
-    z = np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma)) * 255
+    z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
     return z
 
 
@@ -299,12 +300,12 @@ def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=1
 
             fig = plt.figure()
             plt.imshow(sharp, cmap=plt.get_cmap("jet"))
-            ax = fig.gca()
-            fwhm = 30
-            c1 = plt.Circle((128, 128), fwhm / 2, color='red', linewidth=1, fill=False)
-            ax.add_patch(c1)
-            c2 = plt.Circle((128+30, 128), fwhm / 2, color='green', linewidth=1, fill=False)
-            ax.add_patch(c2)
+            # ax = fig.gca()
+            # fwhm = 50
+            # c1 = plt.Circle((128, 128), fwhm / 2, color='red', linewidth=1, fill=False)
+            # ax.add_patch(c1)
+            # c2 = plt.Circle((128+50, 128), fwhm / 2, color='green', linewidth=1, fill=False)
+            # ax.add_patch(c2)
             plt.colorbar()
             plt.figure()
             plt.imshow(blurry, cmap=plt.get_cmap("jet"))
