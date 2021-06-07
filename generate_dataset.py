@@ -144,7 +144,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
         if np.random.random() < 0.8:
             bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=2.5)))
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=2.5, high=6)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=2.5, high=8)))
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
