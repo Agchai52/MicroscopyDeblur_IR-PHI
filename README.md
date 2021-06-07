@@ -55,6 +55,7 @@ python generate_dataset.py --phase test --num_imgs 500
 ```
 python readDatasetNames.py
 ```
+
 ### Train the model
 - Remove old files and trained weights
 ```commandline
