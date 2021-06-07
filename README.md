@@ -43,7 +43,7 @@ python main.py --phase test_real --input_dir dataset/real_images/ --out_dir outp
 ```
 
 
-## Train the model
+## Train and Test the model
 ### Generate the dataset
 1. Generate train and test dataset
 ```
@@ -55,6 +55,12 @@ python generate_dataset.py --phase test --num_imgs 500
 ```
 python readDatasetNames.py
 ```
+### Train the model
+- Remove old files and trained weights
+```commandline
+rm -r checkpoint/ test/ valid/ logfile* plot_* *_record.txt
+```
+- Train a new model
 ```
 python main.py --phase train --epoch 10 --gpu 0
 ```
