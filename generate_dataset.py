@@ -137,14 +137,15 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
 
     bean_size0 = bean_size
     bean_num = np.random.randint(low=bean_min, high=bean_max)
+    # IR-PHI: low=bean_min=3, high=bean_max=10; Fluoresce: low=3, high=8
     bean_id = 0
     background = np.zeros((image_size, image_size))
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=2.5)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.3, high=1)))  # IR-PHI: low=0.5, high=2.5; Fluoresce: low=0.3, high=1
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=2.5, high=8)))
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=1, high=2)))  # IR-PHI: low=2.5, high=8; ; Fluoresce: low=1, high=2
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
@@ -210,8 +211,8 @@ def kernel_fit(loc):
     """
     x, y = loc
     scale = 25
-    sigma = 160.5586
-    a = 65.51
+    sigma = 2.2282  # IR-PHI: 160.5586; Fluoresce: 2.2282
+    a = 1174.6063  # IR-PHI: 65.51; Fluoresce: 1174.6063
     x, y = scale * x, scale * y
     z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
     return z
@@ -252,7 +253,7 @@ def get_kernel(is_plot=False):
     return kernel
 
 
-def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=False):
+def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=True):
     name_path_file = name_folder + "_instance_names.txt"
     f_original = open(name_path_file, "w+")
 

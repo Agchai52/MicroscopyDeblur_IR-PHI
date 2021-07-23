@@ -28,8 +28,8 @@ class BlurModel(nn.Module):
         """
         x, y = loc
         scale = 25 * level
-        sigma = 160.5586
-        a = 65.51
+        sigma = 2.2282  # IR-PHI: 160.5586; Fluoresce: 2.2282
+        a = 1174.6063  # IR-PHI: 65.51; Fluoresce: 1174.6063
         x, y = scale * x, scale * y
         z = np.sqrt(np.log(2) / np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
         return z
