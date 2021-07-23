@@ -253,7 +253,7 @@ def get_kernel(is_plot=False):
     return kernel
 
 
-def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=True, is_plot=True):
+def generate_dataset(name_folder, num_imgs, image_size=256, std_r=5, bean_size=10, is_label=False, is_plot=False):
     name_path_file = name_folder + "_instance_names.txt"
     f_original = open(name_path_file, "w+")
 
