@@ -211,8 +211,8 @@ def kernel_fit(loc):
     """
     x, y = loc
     scale = 25
-    sigma = 2.2282  # IR-PHI: 160.5586; Fluoresce: 2.2282
-    a = 1174.6063  # IR-PHI: 65.51; Fluoresce: 1174.6063
+    sigma = 3.6433  # IR-PHI: 160.5586; Fluoresce0: 2.2282; Fluoresce1: 3.6433
+    a = 1.8155  # IR-PHI: 65.51; Fluoresce0: 1174.6063; Fluoresce1: 1.8155
     x, y = scale * x, scale * y
     z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
     return z
