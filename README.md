@@ -27,10 +27,21 @@ conda activate env3
 conda deactivate
 ```
 ## Process real images
-- Activate environment (Optional if use virtual env rather than conda):
+- Download code shared in this directory
+```
+git clone https://github.com/Agchai52/MicroscopyDeblur_IR-PHI.git
+```
+- Download trained weights and unzip it in the current directory [link](https://drive.google.com/file/d/1uqcObC60L4aSXaadLPJQzuD9IHZe98Ny/view?usp=sharing)
+
+- Activate environment (for Anaconda user):
 ```
 conda activate env3
 ```
+- Activate environment (for Virtualenvwrapper user):
+```
+workon env3
+```
+
 - Put `.png` or `.jpg` images in a folder, e.g. `dataset/real_images/`
 - Choose output folder, e.g. `output/`
 - Run the model on CPUs:
