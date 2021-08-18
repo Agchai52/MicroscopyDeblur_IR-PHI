@@ -143,7 +143,7 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.2, high=0.5)))  # IR-PHI: low=0.5, high=2.5; Fluoresce1: low=0.3, high=1; Fluoresce2: low=0.3, high=1
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.3, high=0.5)))  # IR-PHI: low=0.5, high=2.5; Fluoresce1: low=0.3, high=1; Fluoresce2: low=0.3, high=1
         else:
             bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.5, high=0.7)))  # IR-PHI: low=2.5, high=8; ; Fluoresce2: low=1, high=2; Fluoresce2: low=0.3, high=1
 
