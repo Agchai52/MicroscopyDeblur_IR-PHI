@@ -62,10 +62,7 @@ python generate_dataset.py --phase train --num_imgs 2000
 python generate_dataset.py --phase test --num_imgs 500
 ```
 2. Rename the dataset as "dataset" (Optional)
-3. To generate names of all the train and test data, run the file "readDatasetNames.py" (Optional)
-```
-python readDatasetNames.py
-```
+
 ### Train the model
 - Remove old files and trained weights
 ```commandline
