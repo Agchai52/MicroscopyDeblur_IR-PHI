@@ -143,16 +143,16 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.3, high=1)))  # IR-PHI: low=0.5, high=2.5; Fluoresce: low=0.3, high=1
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.1, high=0.3)))  # IR-PHI: low=0.5, high=2.5; Fluoresce1: low=0.3, high=1; Fluoresce2: low=0.3, high=1
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=1, high=2)))  # IR-PHI: low=2.5, high=8; ; Fluoresce: low=1, high=2
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.3, high=0.5)))  # IR-PHI: low=2.5, high=8; ; Fluoresce2: low=1, high=2; Fluoresce2: low=0.3, high=1
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
         bean_id += 1
 
         # Sample loc for the second bean
-        if np.random.random() < 0.5 and bean_size < 30:
+        if np.random.random() < 0.5 and 3 <= bean_size < 30:
             new_loc = [0, 0]
             dist1 = list(np.random.randint(low=bean_size // 3, high=bean_size + 1, size=(2, )))
             new_loc[0] = bean_loc[0] + dist1[0] if np.random.random() < 0.5 else bean_loc[0] - dist1[0]
@@ -218,6 +218,23 @@ def kernel_fit(loc):
     return z
 
 
+def kernel_fit_fluor(loc):
+    """
+    Estimated psf of laser
+    :param loc: (x, y)
+    :return: z
+    """
+    x, y = loc
+    scale = 25
+    sigma_x = 181.63153641101883  # Fluoresce2: 181.63153641101883 (vertical)
+    sigma_y = 221.2152478747844  # Fluoresce2: 221.2152478747844 (horizontal)
+    a = 1.0345  # Fluoresce2: 1.0345
+    x, y = scale * x, scale * y
+    # z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x / sigma_x ** 2 + y * y / sigma_y ** 2))
+    z = a * np.exp(-np.log(2) * (x ** 2 / sigma_x ** 2 + y ** 2 / sigma_y ** 2))
+    return z
+
+
 def get_kernel(is_plot=False):
     """
     Compute cropped blur kernel
@@ -231,7 +248,7 @@ def get_kernel(is_plot=False):
     for i in range(len(d)):
         for j in range(len(d[0])):
             x, y = d[i][j]
-            Z[i][j] = kernel_fit((x, y))
+            Z[i][j] = kernel_fit_fluor((x, y))  # IR-PHI: kernel_fit((x, y))
 
     Z = Z.reshape(M, M)
     img_Z = np.asarray(Z)

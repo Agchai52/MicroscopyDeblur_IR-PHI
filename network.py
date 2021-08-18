@@ -34,6 +34,22 @@ class BlurModel(nn.Module):
         z = np.sqrt(np.log(2) / np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
         return z
 
+    def kernel_fit_fluor(self, loc, level=1.0):
+        """
+        Estimated psf of laser
+        :param loc: (x, y)
+        :return: z
+        """
+        x, y = loc
+        scale = 25 * level
+        sigma_x = 181.63153641101883  # Fluoresce2: 181.63153641101883 (vertical)
+        sigma_y = 221.2152478747844  # Fluoresce2: 221.2152478747844 (horizontal)
+        a = 1.0345  # Fluoresce2: 1.0345
+        x, y = scale * x, scale * y
+        # z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x / sigma_x ** 2 + y * y / sigma_y ** 2))
+        z = a * np.exp(-np.log(2) * (x ** 2 / sigma_x ** 2 + y ** 2 / sigma_y ** 2))
+        return z
+
     def get_kernel(self, level=1.0):
         """
         Compute cropped blur kernel
@@ -47,7 +63,7 @@ class BlurModel(nn.Module):
         for i in range(len(d)):
             for j in range(len(d[0])):
                 x, y = d[i][j]
-                Z[i][j] = self.kernel_fit((x, y), level)
+                Z[i][j] = self.kernel_fit_fluor((x, y), level)  # IR-PHI: self.kernel_fit((x, y), level)
 
         Z = Z.reshape(M, M)
         img_Z = np.asarray(Z)
