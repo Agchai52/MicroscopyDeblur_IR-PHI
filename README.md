@@ -46,11 +46,11 @@ workon env3
 - Choose output folder, e.g. `output/`
 - Run the model on CPUs:
 ```
-python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu -1
+python main.py --phase test_real --input_dir dataset/real_images/ --output_dir output/ --gpu -1
 ```
 - Run the model on a GPU, e.g. with `gpu_id=0`:
 ```
-python main.py --phase test_real --input_dir dataset/real_images/ --out_dir output/ --gpu 0
+python main.py --phase test_real --input_dir dataset/real_images/ --output_dir output/ --gpu 0
 ```
 
 
