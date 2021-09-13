@@ -28,10 +28,11 @@ class BlurModel(nn.Module):
         """
         x, y = loc
         scale = 25 * level
-        sigma = 3.6433  # IR-PHI: 160.5586; Fluoresce0: 2.2282; Fluoresce1: 3.6433
-        a = 1.8155  # IR-PHI: 65.51; Fluoresce0: 1174.6063; Fluoresce1: 1.8155
+        sigma = 179.01  # IR-PHI: 160.5586; Fluoresce0: 2.2282; Fluoresce1: 3.6433; Fluoresce2: 179.01
+        a = 251.5869  # IR-PHI: 65.51; Fluoresce0: 1174.6063; Fluoresce1: 1.8155; Fluoresce2: 251.5869
         x, y = scale * x, scale * y
-        z = np.sqrt(np.log(2) / np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
+        # z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))  # IR-PHI
+        z = a * np.exp(-np.log(2) * (x ** 2 + y ** 2) / sigma ** 2)  # Fluoresce2
         return z
 
     def kernel_fit_fluor(self, loc, level=1.0):
@@ -42,9 +43,9 @@ class BlurModel(nn.Module):
         """
         x, y = loc
         scale = 25 * level
-        sigma_x = 181.63153641101883  # Fluoresce2: 181.63153641101883 (vertical)
-        sigma_y = 221.2152478747844  # Fluoresce2: 221.2152478747844 (horizontal)
-        a = 1.0345  # Fluoresce2: 1.0345
+        sigma_x = 181.63153641101883  # Fluoresce1: 181.63153641101883 (vertical)
+        sigma_y = 221.2152478747844  # Fluoresce1: 221.2152478747844 (horizontal)
+        a = 1.0345  # Fluoresce1: 1.0345
         x, y = scale * x, scale * y
         # z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x / sigma_x ** 2 + y * y / sigma_y ** 2))
         z = a * np.exp(-np.log(2) * (x ** 2 / sigma_x ** 2 + y ** 2 / sigma_y ** 2))
@@ -63,7 +64,7 @@ class BlurModel(nn.Module):
         for i in range(len(d)):
             for j in range(len(d[0])):
                 x, y = d[i][j]
-                Z[i][j] = self.kernel_fit_fluor((x, y), level)  # IR-PHI: self.kernel_fit((x, y), level)
+                Z[i][j] = self.kernel_fit((x, y), level)  # 1D: self.kernel_fit((x, y), level); 2D: self.kernel_fit_fluor((x, y), level)
 
         Z = Z.reshape(M, M)
         img_Z = np.asarray(Z)

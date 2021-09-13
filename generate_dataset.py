@@ -143,9 +143,9 @@ def generate_sharp_img(image_size=256, bean_size=10, bean_min=3, bean_max=10):
     for i in range(bean_num):
         # Sample loc for the first bean
         if np.random.random() < 0.8:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.3, high=0.7)))  # IR-PHI: low=0.5, high=2.5; Fluoresce1: low=0.3, high=1; Fluoresce2: low=0.3, high=0.7
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.8, high=1.2)))  # IR-PHI: low=0.5, high=2.5; Fluoresce0: low=0.3, high=1; Fluoresce1: low=0.3, high=0.7; Fluoresce2: low=0.8, high=1.2
         else:
-            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=0.7, high=1)))  # IR-PHI: low=2.5, high=8; ; Fluoresce2: low=1, high=2; Fluoresce2: low=0.7, high=1
+            bean_size = np.int(np.ceil(bean_size0 * np.random.uniform(low=1.2, high=1.5)))  # IR-PHI: low=2.5, high=8; ; Fluoresce0: low=1, high=2; Fluoresce1: low=0.7, high=1; Fluoresce2: low=1.2, high=1.5
 
         bean_loc = list(np.random.randint(low=0, high=image_size - bean_size // 2, size=(2, )))
         background = plot_a_bean(background, bean_loc, bean_size, image_size)
@@ -211,10 +211,11 @@ def kernel_fit(loc):
     """
     x, y = loc
     scale = 25
-    sigma = 3.6433  # IR-PHI: 160.5586; Fluoresce0: 2.2282; Fluoresce1: 3.6433
-    a = 1.8155  # IR-PHI: 65.51; Fluoresce0: 1174.6063; Fluoresce1: 1.8155
+    sigma = 179.01  # IR-PHI: 160.5586; Fluoresce0: 2.2282; Fluoresce1: 3.6433; Fluoresce2: 179.01
+    a = 251.5869  # IR-PHI: 65.51; Fluoresce0: 1174.6063; Fluoresce1: 1.8155; Fluoresce2: 251.5869
     x, y = scale * x, scale * y
-    z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))
+    # z = np.sqrt(np.log(2)/np.pi) * a / sigma * np.exp(-np.log(2) * (x * x + y * y) / (sigma * sigma))  # IR-PHI
+    z = a * np.exp(-np.log(2) * (x**2 + y**2) / sigma**2)  # Fluoresce2
     return z
 
 
@@ -242,22 +243,24 @@ def get_kernel(is_plot=False):
     :return: blur kernel
     """
     M = 61
-    X, Y = np.meshgrid(np.linspace(-30, 31, M), np.linspace(-30, 31, M))
+    X, Y = np.meshgrid(np.linspace(-30, 30, M), np.linspace(-30, 30, M))
     d = np.dstack([X, Y])
     Z = np.zeros((M, M))
     for i in range(len(d)):
         for j in range(len(d[0])):
             x, y = d[i][j]
-            Z[i][j] = kernel_fit_fluor((x, y))  # IR-PHI: kernel_fit((x, y))
+            Z[i][j] = kernel_fit((x, y))  # 1D: kernel_fit((x, y)); 2D: kernel_fit_fluor((x, y))
 
     Z = Z.reshape(M, M)
     img_Z = np.asarray(Z)
-    crop_size = 15
+    crop_size = 15  # IR-PHI: 15; Fluoresce2: 25
     crop_Z = img_Z[crop_size:M-crop_size, crop_size:M-crop_size]
     kernel = crop_Z / np.float(np.sum(crop_Z))
     if is_plot:
         print(crop_Z.shape)
+        #crop_Z = crop_Z[::4, ::4]
         print(crop_Z)
+        print(kernel)
         # psf = cv2.imread("psf.png", 0)
         # plt.figure()
         # plt.imshow(psf, cmap='gray', vmin=0, vmax=255)
